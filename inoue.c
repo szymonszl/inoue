@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <curl/curl.h>
+#include "json.h"
 
 static struct {
     char *username;
@@ -75,6 +76,165 @@ buffer_append(buffer *b, char *data, size_t length)
 	return length;
 }
 
+const char*
+buffer_getstr(buffer *b)
+{
+	if (!b)
+		return NULL;
+	return b->buf;
+}
+
+size_t
+buffer_getstrlen(buffer *b)
+{
+	if (!b)
+		return -1;
+	return b->cursor;
+}
+
+void
+buffer_truncate(buffer *b)
+{
+	b->cursor = 0;
+}
+
+void
+buffer_free(buffer *b)
+{
+	if (!b)
+		return;
+	if (b->buf)
+		free(b->buf);
+	b->buf = 0;
+	free(b);
+}
+
+struct json_object_s *
+json_get_api_data(struct json_value_s *root)
+{
+	struct json_object_s *root_obj = json_value_as_object(root);
+	if (!root_obj)
+		return NULL;
+	for (struct json_object_element_s *i = root_obj->start; i != NULL; i = i->next) {
+		if (0 == strcmp(i->name->string, "success")) {
+			if (!json_value_is_true(i->value))
+				return NULL;
+		} else if (0 == strcmp(i->name->string, "data")) {
+			return json_value_as_object(i->value);
+		}
+	}
+	return NULL;
+}
+
+int
+parse_userid(const char *apiresp, size_t apiresplen, char *userid)
+{
+	int ret = 1;
+	struct json_value_s *root = json_parse(apiresp, apiresplen);
+	struct json_object_s *data = json_get_api_data(root);
+	if (data) {
+		for (struct json_object_element_s *i = data->start; i != NULL; i = i->next) {
+			if (0 == strcmp(i->name->string, "user")) {
+				for (struct json_object_element_s *j = json_value_as_object(i->value)->start; j != NULL; j = j->next) {
+					if (0 == strcmp(j->name->string, "_id")) {
+						struct json_string_s *id = json_value_as_string(j->value);
+						if (id) {
+							ret = 0;
+							strcpy(userid, id->string);
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	free(root);
+	return ret;
+}
+
+typedef struct {
+	char opponent[32];
+	char replayid[32];
+	char ts[32];
+} game;
+
+int
+parse_game(struct json_object_s *json, game *game)
+{
+	if (!json)
+		return 0;
+	int values = 0;
+	for (struct json_object_element_s *i = json->start; i != NULL; i = i->next) {
+		if (0 == strcmp(i->name->string, "replayid")) {
+			struct json_string_s *replayid = json_value_as_string(i->value);
+			if (replayid) {
+				strcpy(game->replayid, replayid->string);
+				values++;
+			}
+		} else if (0 == strcmp(i->name->string, "ts")) {
+			struct json_string_s *ts = json_value_as_string(i->value);
+			if (ts) {
+				strcpy(game->ts, ts->string);
+				values++;
+			}
+		} else if (0 == strcmp(i->name->string, "endcontext")) {
+			struct json_array_s *endcontext = json_value_as_array(i->value);
+			if (endcontext) {
+				for (struct json_array_element_s *i = endcontext->start; i != NULL; i = i->next) {
+					struct json_object_s *c = json_value_as_object(i->value);
+					if (c) {
+						for (struct json_object_element_s *j = c->start; j != NULL; j = j->next) {
+							if (0 == strcmp(j->name->string, "user")) {
+								struct json_object_s *u = json_value_as_object(i->value);
+								for (struct json_object_element_s *k = u->start; k != NULL; k = k->next) {
+									if (0 == strcmp(k->name->string, "user")) {
+										struct json_string_s *username = json_value_as_string(k->value);
+										if (username) {
+											if (0 != strcmp(username->string, config.username)) {
+												strcpy(game->opponent, username->string);
+												values++;
+												break;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return (values==3)?1:0;
+}
+
+int
+parse_game_list(const char *apiresp, size_t apiresplen, game *games)
+{
+	printf("AR: %s\n", apiresp);
+	struct json_value_s *root = json_parse(apiresp, apiresplen);
+	if (!root)
+		return 0;
+	struct json_object_s *data = json_get_api_data(root);
+	int count = 0;
+	if (!data) {
+		free(root);
+		return 0;
+	}
+	for (struct json_object_element_s *i = data->start; i != NULL; i = i->next) {
+		if (0 == strcmp(i->name->string, "records")) {
+			struct json_array_s *records = json_value_as_array(i->value);
+			if (!records)
+				break;
+			for (struct json_array_element_s *j = records->start; j != NULL; j = j->next) {
+				count += parse_game(json_value_as_object(i->value), &games[count]);
+			}
+		}
+	}
+	free(root);
+	return count;
+}
+
 size_t
 recv_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
@@ -86,6 +246,7 @@ main(int argc, char **argv)
 {
 	printf("INOUE v0.1\n");
 	printf("curl ver: %s\n", curl_version());
+	int exitcode = EXIT_FAILURE;
 
 	if (!loadcfg()) {
 		fprintf(stderr, "Configuration error, exiting!\n");
@@ -98,24 +259,52 @@ main(int argc, char **argv)
 
 	curl_global_init(CURL_GLOBAL_ALL);
 	hnd = curl_easy_init();
-	curl_easy_setopt(hnd, CURLOPT_URL, "https://ch.tetr.io/api/streams/league_userrecent_5e332c0b9380f13edda2b1b8");
 	curl_easy_setopt(hnd, CURLOPT_USERAGENT, config.useragent);
 	curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, recv_callback);
 	curl_easy_setopt(hnd, CURLOPT_WRITEDATA, buf);
-	puts("Executing GET...");
+
+	puts("Resolving username...");
+	char url_buf[128];
+	snprintf(url_buf, 128, "https://ch.tetr.io/api/users/%s", config.username);
+	curl_easy_setopt(hnd, CURLOPT_URL, url_buf);
 	ret = curl_easy_perform(hnd);
 
 	if (ret != CURLE_OK) {
-		fprintf(stderr, "curl_easy_perform() failed: %s\n",
-		curl_easy_strerror(ret));
-	} else {
-		puts("Downloaded data from tetra channel:");
-		puts(buf->buf);
-		printf("\n");
+		fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
+		goto main_cleanup;
 	}
 
-	curl_easy_cleanup(hnd);
-	hnd = NULL;
+	char userid[64];
+	if (parse_userid(buffer_getstr(buf), buffer_getstrlen(buf), userid)) {
+		fprintf(stderr, "Invalid server response while resolving username!\n");
+		goto main_cleanup;
+	}
 
-	return 0;
+	printf("Resolved UserID: '%s'\n", userid);
+	buffer_truncate(buf);
+	snprintf(url_buf, 128, "http://ch.tetr.io/api/streams/league_userrecent_%s", config.username);
+	curl_easy_setopt(hnd, CURLOPT_URL, url_buf);
+	ret = curl_easy_perform(hnd);
+	if (ret != CURLE_OK) {
+		fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
+		goto main_cleanup;
+	}
+
+	game games[10];
+	int gamec = parse_game_list(buffer_getstr(buf), buffer_getstrlen(buf), games); // FIXME: fails
+	if (!gamec) {
+		fprintf(stderr, "Error while parsing games, exiting!\n");
+		goto main_cleanup;
+	}
+	for (int i = 0; i < gamec; i++) {
+		printf("Found game '%s' against '%s', played on '%s'\n", games[i].replayid, games[i].opponent, games[i].ts);
+	}
+
+	// if the program is exited via goto, then it will return FAILURE instead
+	exitcode = EXIT_SUCCESS;
+main_cleanup:
+	curl_easy_cleanup(hnd);
+	buffer_free(buf);
+
+	return exitcode;
 }
