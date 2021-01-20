@@ -1,7 +1,11 @@
+#define _XOPEN_SOURCE 600
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
+#include <ctype.h>
 #include <curl/curl.h>
 #include "json.h"
 
@@ -9,6 +13,7 @@ static struct {
     char *username;
     char *token;
     char *useragent;
+	char *filenameformat;
 } config = {0};
 
 int
@@ -26,11 +31,15 @@ loadcfg()
 		else if (0 == strcmp(key, "username")) config.username = strdup(val);
 		else if (0 == strcmp(key, "token")) config.token = strdup(val);
 		else if (0 == strcmp(key, "useragent")) config.useragent = strdup(val);
+		else if (0 == strcmp(key, "filenameformat")) config.filenameformat = strdup(val);
 		else fprintf(stderr, "Warning: unrecognized key \"%s\" in config\n", key);
 	}
 	fclose(f);
 	if (!config.useragent) {
 		config.useragent = "Mozilla/5.0 (only pretending; Inoue/v1)";
+	}
+	if (!config.filenameformat) {
+		config.filenameformat = "%Y-%m-%d_%H-%M_%O.ttr";
 	}
 	if (!config.username) {
 		fprintf(stderr, "No username specified!\n");
@@ -40,6 +49,10 @@ loadcfg()
 		fprintf(stderr, "No token specified!\n");
 		return 0;
 	}
+
+	for (int i = 0; config.username[i] != 0; i++)
+		config.username[i] = tolower(config.username[i]);
+
 	return 1;
 }
 
@@ -102,6 +115,7 @@ void
 buffer_truncate(buffer *b)
 {
 	b->cursor = 0;
+	b->buf[0] = 0;
 }
 
 void
@@ -161,7 +175,7 @@ parse_userid(const char *apiresp, size_t apiresplen, char *userid)
 typedef struct {
 	char opponent[32];
 	char replayid[32];
-	char ts[32];
+	struct tm ts;
 } game;
 
 int
@@ -179,8 +193,17 @@ parse_game(struct json_object_s *json, game *game)
 			}
 		} else if (0 == strcmp(i->name->string, "ts")) {
 			struct json_string_s *ts = json_value_as_string(i->value);
-			if (ts) {
-				strcpy(game->ts, ts->string);
+			// remove milliseconds from the timestamp
+			char copy[64];
+			char tmp[64] = {0};
+			strncpy(copy, ts->string, 64);
+			char *part = strtok(copy, ".");
+			strcat(tmp, part);
+			strcat(tmp, " ");
+			part = strtok(NULL, "");
+			strcat(tmp, &part[3]);
+			memset(&game->ts, 0, sizeof(struct tm));
+			if (strptime(ts->string, "%Y-%m-%dT%H:%M:%S %Z", &game->ts)) {
 				values++;
 			}
 		} else if (0 == strcmp(i->name->string, "endcontext")) {
@@ -239,6 +262,72 @@ parse_game_list(const char *apiresp, size_t apiresplen, game *games)
 	}
 	free(root);
 	return count;
+}
+
+const char *
+generate_filename(game *g)
+{
+	static buffer *buf = NULL;
+	char tmp[32];
+	char fmt[] = "%_";
+	if (!buf)
+		buf = buffer_new();
+	if (!buf)
+		return NULL;
+	buffer_truncate(buf);
+	for (int i = 0; config.filenameformat[i] != 0; i++) {
+		if (config.filenameformat[i] == '%') {
+			i++;
+			switch(config.filenameformat[i]) {
+			case 'Y':
+			case 'y':
+			case 'm':
+			case 'd':
+			case 'H':
+			case 'M':
+			case 'S':
+			case 's':
+				fmt[1] = config.filenameformat[i];
+				strftime(tmp, 32, fmt, &g->ts);
+				buffer_append(buf, tmp, strlen(tmp));
+				break;
+			case 'o':
+			case 'O':
+				strncpy(tmp, g->opponent, 32);
+				for (int j = 0; tmp[j] != 0; j++) {
+					if (config.filenameformat[i] == 'o')
+						tmp[j] = tolower(tmp[j]);
+					else
+						tmp[j] = toupper(tmp[j]);
+				}
+				buffer_append(buf, tmp, strlen(tmp));
+				break;
+			case 'u':
+				buffer_append(buf, config.username, strlen(config.username));
+				break;
+			case 'U':
+				strncpy(tmp, config.username, 32);
+				for (int j = 0; tmp[j] != 0; j++) {
+					tmp[j] = toupper(tmp[j]);
+				}
+				buffer_append(buf, tmp, strlen(tmp));
+				break;
+			case 'r':
+				buffer_append(buf, g->replayid, strlen(g->replayid));
+				break;
+			case '%':
+				buffer_append(buf, "%", 1);
+				break;
+			default:
+				return NULL;
+			}
+		} else {
+			tmp[0] = config.filenameformat[i];
+			tmp[1] = 0;
+			buffer_append(buf, tmp, 1);
+		}
+	}
+	return buffer_getstr(buf);
 }
 
 size_t
@@ -311,7 +400,10 @@ main(int argc, char **argv)
 		goto main_cleanup;
 	}
 	for (int i = 0; i < gamec; i++) {
-		printf("Found game '%s' against '%s', played on '%s'\n", games[i].replayid, games[i].opponent, games[i].ts);
+		char ts[64];
+		strftime(ts, 64, "%Y-%m-%d %H:%M", &games[i].ts);
+		printf("Found game '%s' against '%s', played on %s\n", games[i].replayid, games[i].opponent, ts);
+		printf("\tFilename: '%s'\n", generate_filename(&games[i]));
 	}
 
 	struct curl_slist *slist1 = NULL;
