@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <curl/curl.h>
 #include "json.h"
@@ -14,6 +15,10 @@ int
 loadcfg()
 {
 	FILE* f = fopen("inoue.cfg", "r");
+	if (!f) {
+		perror("inoue: couldnt open config file");
+		return 0;
+	}
 	char key[32];
 	char val[512];
 	while (fscanf(f, "%32[^ \n] %512[^\n]%*c", key, val) == 2) {
@@ -59,6 +64,7 @@ buffer_new()
 	b->cursor = 0;
 	return b;
 }
+
 size_t
 buffer_append(buffer *b, char *data, size_t length)
 {
@@ -185,9 +191,9 @@ parse_game(struct json_object_s *json, game *game)
 					if (c) {
 						for (struct json_object_element_s *j = c->start; j != NULL; j = j->next) {
 							if (0 == strcmp(j->name->string, "user")) {
-								struct json_object_s *u = json_value_as_object(i->value);
+								struct json_object_s *u = json_value_as_object(j->value);
 								for (struct json_object_element_s *k = u->start; k != NULL; k = k->next) {
-									if (0 == strcmp(k->name->string, "user")) {
+									if (0 == strcmp(k->name->string, "username")) {
 										struct json_string_s *username = json_value_as_string(k->value);
 										if (username) {
 											if (0 != strcmp(username->string, config.username)) {
@@ -211,8 +217,8 @@ parse_game(struct json_object_s *json, game *game)
 int
 parse_game_list(const char *apiresp, size_t apiresplen, game *games)
 {
-	printf("AR: %s\n", apiresp);
-	struct json_value_s *root = json_parse(apiresp, apiresplen);
+	struct json_parse_result_s result;
+	struct json_value_s *root = json_parse_ex(apiresp, apiresplen, 0, NULL, NULL, &result);
 	if (!root)
 		return 0;
 	struct json_object_s *data = json_get_api_data(root);
@@ -227,7 +233,7 @@ parse_game_list(const char *apiresp, size_t apiresplen, game *games)
 			if (!records)
 				break;
 			for (struct json_array_element_s *j = records->start; j != NULL; j = j->next) {
-				count += parse_game(json_value_as_object(i->value), &games[count]);
+				count += parse_game(json_value_as_object(j->value), &games[count]);
 			}
 		}
 	}
@@ -248,6 +254,13 @@ main(int argc, char **argv)
 	printf("curl ver: %s\n", curl_version());
 	int exitcode = EXIT_FAILURE;
 
+	if (argc == 2) {
+		if (chdir(argv[1]) < 0) {
+			perror("inoue: couldn't change directory");
+			return EXIT_FAILURE;
+		}
+	}
+
 	if (!loadcfg()) {
 		fprintf(stderr, "Configuration error, exiting!\n");
 		return EXIT_FAILURE;
@@ -262,6 +275,7 @@ main(int argc, char **argv)
 	curl_easy_setopt(hnd, CURLOPT_USERAGENT, config.useragent);
 	curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, recv_callback);
 	curl_easy_setopt(hnd, CURLOPT_WRITEDATA, buf);
+	curl_easy_setopt(hnd, CURLOPT_FAILONERROR, 1);
 
 	puts("Resolving username...");
 	char url_buf[128];
@@ -279,10 +293,10 @@ main(int argc, char **argv)
 		fprintf(stderr, "Invalid server response while resolving username!\n");
 		goto main_cleanup;
 	}
+	buffer_truncate(buf);
 
 	printf("Resolved UserID: '%s'\n", userid);
-	buffer_truncate(buf);
-	snprintf(url_buf, 128, "http://ch.tetr.io/api/streams/league_userrecent_%s", config.username);
+	snprintf(url_buf, 128, "https://ch.tetr.io/api/streams/league_userrecent_%s", userid);
 	curl_easy_setopt(hnd, CURLOPT_URL, url_buf);
 	ret = curl_easy_perform(hnd);
 	if (ret != CURLE_OK) {
@@ -298,6 +312,24 @@ main(int argc, char **argv)
 	}
 	for (int i = 0; i < gamec; i++) {
 		printf("Found game '%s' against '%s', played on '%s'\n", games[i].replayid, games[i].opponent, games[i].ts);
+	}
+
+	struct curl_slist *slist1 = NULL;
+	char auth[256];
+	snprintf(auth, 256, "Authorization: Bearer %s", config.token);
+	slist1 = curl_slist_append(slist1, "Authorization: Bearer %s");
+	curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, slist1);
+	for (int i = 0; i < gamec; i++) {
+		break;
+		snprintf(url_buf, 128, "https://tetr.io/api/games/%s", games[i].replayid);
+		curl_easy_setopt(hnd, CURLOPT_URL, url_buf);
+		buffer_truncate(buf);
+		printf("Downloading %s...\n", games[i].replayid);
+		ret = curl_easy_perform(hnd);
+		if (ret != CURLE_OK) {
+			fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
+			goto main_cleanup;
+		}
 	}
 
 	// if the program is exited via goto, then it will return FAILURE instead
