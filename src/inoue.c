@@ -8,6 +8,7 @@
 #include <ctype.h>
 #include <curl/curl.h>
 #include "json.h"
+#include "buffer.h"
 
 static struct {
 	char *username;
@@ -27,11 +28,16 @@ loadcfg()
 	char key[32];
 	char val[512];
 	while (fscanf(f, "%32[^ \n] %512[^\n]%*c", key, val) == 2) {
-		if (key[0] == '#') continue; // ignore comments
-		else if (0 == strcmp(key, "username")) config.username = strdup(val);
-		else if (0 == strcmp(key, "token")) config.token = strdup(val);
-		else if (0 == strcmp(key, "useragent")) config.useragent = strdup(val);
-		else if (0 == strcmp(key, "filenameformat")) config.filenameformat = strdup(val);
+		if (key[0] == '#')
+			continue; // ignore comments
+		else if (0 == strcmp(key, "username"))
+			config.username = strdup(val);
+		else if (0 == strcmp(key, "token"))
+			config.token = strdup(val);
+		else if (0 == strcmp(key, "useragent"))
+			config.useragent = strdup(val);
+		else if (0 == strcmp(key, "filenameformat"))
+			config.filenameformat = strdup(val);
 		else fprintf(stderr, "Warning: unrecognized key \"%s\" in config\n", key);
 	}
 	fclose(f);
@@ -54,79 +60,6 @@ loadcfg()
 		config.username[i] = tolower(config.username[i]);
 
 	return 1;
-}
-
-typedef struct {
-	size_t size;
-	size_t cursor;
-	char *buf;
-} buffer;
-
-buffer *
-buffer_new()
-{
-	buffer *b = malloc(sizeof(buffer));
-	if (!b)
-		return NULL;
-	b->buf = malloc(8192);
-	if (!b->buf) {
-		free(b);
-		return NULL;
-	}
-	b->size = 8192;
-	b->cursor = 0;
-	return b;
-}
-
-size_t
-buffer_append(buffer *b, char *data, size_t length)
-{
-	if (b->cursor + length + 1> b->size) {
-		size_t newlen = ((b->cursor + length + 8193) / 8192 ) * 8192;
-		char *newbuf = realloc(b->buf, newlen);
-		if (!newbuf) {
-			return 0;
-		}
-		b->buf = newbuf;
-	}
-	memcpy(&b->buf[b->cursor], data, length);
-	b->cursor += length;
-	b->buf[b->cursor] = 0; // cursor is not incremented, because the next call should overwrite the null
-	return length;
-}
-
-const char*
-buffer_getstr(buffer *b)
-{
-	if (!b)
-		return NULL;
-	return b->buf;
-}
-
-size_t
-buffer_getstrlen(buffer *b)
-{
-	if (!b)
-		return -1;
-	return b->cursor;
-}
-
-void
-buffer_truncate(buffer *b)
-{
-	b->cursor = 0;
-	b->buf[0] = 0;
-}
-
-void
-buffer_free(buffer *b)
-{
-	if (!b)
-		return;
-	if (b->buf)
-		free(b->buf);
-	b->buf = 0;
-	free(b);
 }
 
 struct json_value_s *
@@ -285,7 +218,6 @@ parse_game_list(const char *apiresp, size_t apiresplen, game *games)
 int
 save_game_to_file(const char *apiresp, size_t apiresplen, FILE *f)
 {
-	int ret = 1;
 	struct json_value_s *root = json_parse(apiresp, apiresplen);
 	if (!root)
 		return 0;
@@ -343,7 +275,7 @@ generate_filename(game *g)
 			case 's':
 				fmt[1] = config.filenameformat[i];
 				strftime(tmp, 32, fmt, &g->ts);
-				buffer_append(buf, tmp, strlen(tmp));
+				buffer_appendstr(buf, tmp);
 				break;
 			case 'o':
 			case 'O':
@@ -354,40 +286,38 @@ generate_filename(game *g)
 					else
 						tmp[j] = toupper(tmp[j]);
 				}
-				buffer_append(buf, tmp, strlen(tmp));
+				buffer_appendstr(buf, tmp);
 				break;
 			case 'u':
-				buffer_append(buf, config.username, strlen(config.username));
+				buffer_appendstr(buf, config.username);
 				break;
 			case 'U':
 				strncpy(tmp, config.username, 32);
 				for (int j = 0; tmp[j] != 0; j++) {
 					tmp[j] = toupper(tmp[j]);
 				}
-				buffer_append(buf, tmp, strlen(tmp));
+				buffer_appendstr(buf, tmp);
 				break;
 			case 'r':
-				buffer_append(buf, g->replayid, strlen(g->replayid));
+				buffer_appendstr(buf, g->replayid);
 				break;
 			case '%':
-				buffer_append(buf, "%", 1);
+				buffer_appendchar(buf, '%');
 				break;
 			default:
 				return NULL;
 			}
 		} else {
-			tmp[0] = config.filenameformat[i];
-			tmp[1] = 0;
-			buffer_append(buf, tmp, 1);
+			buffer_appendchar(buf, config.filenameformat[i]);
 		}
 	}
-	return buffer_getstr(buf);
+	return buffer_str(buf);
 }
 
 size_t
 recv_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
-	return buffer_append((buffer *)userdata, ptr, size*nmemb);
+	return buffer_appendbytes((buffer *)userdata, ptr, size*nmemb);
 }
 
 int
@@ -432,7 +362,7 @@ main(int argc, char **argv)
 	}
 
 	char userid[64];
-	if (parse_userid(buffer_getstr(buf), buffer_getstrlen(buf), userid)) {
+	if (parse_userid(buffer_str(buf), buffer_strlen(buf), userid)) {
 		fprintf(stderr, "Invalid server response while resolving username!\n");
 		goto main_cleanup;
 	}
@@ -448,7 +378,7 @@ main(int argc, char **argv)
 	}
 
 	game games[10];
-	int gamec = parse_game_list(buffer_getstr(buf), buffer_getstrlen(buf), games); // FIXME: fails
+	int gamec = parse_game_list(buffer_str(buf), buffer_strlen(buf), games); // FIXME: fails
 	if (!gamec) {
 		fprintf(stderr, "Error while parsing games, exiting!\n");
 		goto main_cleanup;
@@ -486,7 +416,7 @@ main(int argc, char **argv)
 			unlink(filename); // delete the failed file, so the download can be retried
 			goto main_cleanup;
 		}
-		if (!save_game_to_file(buffer_getstr(buf), buffer_getstrlen(buf), f)) {
+		if (!save_game_to_file(buffer_str(buf), buffer_strlen(buf), f)) {
 			fprintf(stderr, "Saving failed!\n");
 			fclose(f);
 			unlink(filename);
