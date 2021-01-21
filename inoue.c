@@ -10,9 +10,9 @@
 #include "json.h"
 
 static struct {
-    char *username;
-    char *token;
-    char *useragent;
+	char *username;
+	char *token;
+	char *useragent;
 	char *filenameformat;
 } config = {0};
 
@@ -129,6 +129,38 @@ buffer_free(buffer *b)
 	free(b);
 }
 
+struct json_value_s *
+json_getpath(struct json_object_s *json, const char *path)
+{
+	struct json_value_s *cur;
+	struct json_object_s *obj = json;
+	char *pth = strdup(path);
+	char *r;
+	char *part = strtok_r(pth, ".", &r);
+	while (1) {
+		cur = NULL;
+		for (struct json_object_element_s *i = obj->start; i != NULL; i = i->next) {
+			if (0 == strcmp(i->name->string, part)) {
+				cur = i->value;
+				break;
+			}
+		}
+		if (!cur)
+			break;
+		part = strtok_r(NULL, ".", &r);
+		if (part) {
+			obj = json_value_as_object(cur);
+			if (!obj) {
+				break;
+			}
+		} else {
+			break;
+		}
+	}
+	free(pth);
+	return cur;
+}
+
 struct json_object_s *
 json_get_api_data(struct json_value_s *root)
 {
@@ -153,19 +185,11 @@ parse_userid(const char *apiresp, size_t apiresplen, char *userid)
 	struct json_value_s *root = json_parse(apiresp, apiresplen);
 	struct json_object_s *data = json_get_api_data(root);
 	if (data) {
-		for (struct json_object_element_s *i = data->start; i != NULL; i = i->next) {
-			if (0 == strcmp(i->name->string, "user")) {
-				for (struct json_object_element_s *j = json_value_as_object(i->value)->start; j != NULL; j = j->next) {
-					if (0 == strcmp(j->name->string, "_id")) {
-						struct json_string_s *id = json_value_as_string(j->value);
-						if (id) {
-							ret = 0;
-							strcpy(userid, id->string);
-							break;
-						}
-					}
-				}
-			}
+		struct json_value_s *idv = json_getpath(data, "user._id");
+		struct json_string_s *id = json_value_as_string(idv);
+		if (id) {
+			ret = 0;
+			strcpy(userid, id->string);
 		}
 	}
 	free(root);
@@ -183,58 +207,55 @@ parse_game(struct json_object_s *json, game *game)
 {
 	if (!json)
 		return 0;
-	int values = 0;
-	for (struct json_object_element_s *i = json->start; i != NULL; i = i->next) {
-		if (0 == strcmp(i->name->string, "replayid")) {
-			struct json_string_s *replayid = json_value_as_string(i->value);
-			if (replayid) {
-				strcpy(game->replayid, replayid->string);
-				values++;
-			}
-		} else if (0 == strcmp(i->name->string, "ts")) {
-			struct json_string_s *ts = json_value_as_string(i->value);
-			// remove milliseconds from the timestamp
-			char copy[64];
-			char tmp[64] = {0};
-			strncpy(copy, ts->string, 64);
-			char *part = strtok(copy, ".");
-			strcat(tmp, part);
-			strcat(tmp, " ");
-			part = strtok(NULL, "");
-			strcat(tmp, &part[3]);
-			memset(&game->ts, 0, sizeof(struct tm));
-			if (strptime(ts->string, "%Y-%m-%dT%H:%M:%S %Z", &game->ts)) {
-				values++;
-			}
-		} else if (0 == strcmp(i->name->string, "endcontext")) {
-			struct json_array_s *endcontext = json_value_as_array(i->value);
-			if (endcontext) {
-				for (struct json_array_element_s *i = endcontext->start; i != NULL; i = i->next) {
-					struct json_object_s *c = json_value_as_object(i->value);
-					if (c) {
-						for (struct json_object_element_s *j = c->start; j != NULL; j = j->next) {
-							if (0 == strcmp(j->name->string, "user")) {
-								struct json_object_s *u = json_value_as_object(j->value);
-								for (struct json_object_element_s *k = u->start; k != NULL; k = k->next) {
-									if (0 == strcmp(k->name->string, "username")) {
-										struct json_string_s *username = json_value_as_string(k->value);
-										if (username) {
-											if (0 != strcmp(username->string, config.username)) {
-												strcpy(game->opponent, username->string);
-												values++;
-												break;
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+
+	struct json_value_s *v = json_getpath(json, "replayid");
+	if (!v)
+		return 0;
+	struct json_string_s *replayid = json_value_as_string(v);
+	if (!replayid)
+		return 0;
+	strcpy(game->replayid, replayid->string);
+
+	v = json_getpath(json, "ts");
+	if (!v)
+		return 0;
+	struct json_string_s *ts = json_value_as_string(v);
+	if (!ts)
+		return 0;
+	// remove milliseconds from the timestamp
+	char copy[64];
+	char tmp[64] = {0};
+	strncpy(copy, ts->string, 64);
+	char *part = strtok(copy, ".");
+	strcat(tmp, part);
+	strcat(tmp, " ");
+	part = strtok(NULL, "");
+	strcat(tmp, &part[3]);
+	memset(&game->ts, 0, sizeof(struct tm));
+	if (!strptime(ts->string, "%Y-%m-%dT%H:%M:%S %Z", &game->ts)) {
+		return 0;
+	}
+
+	v = json_getpath(json, "endcontext");
+	struct json_array_s *endcontext = json_value_as_array(v);
+	if (endcontext) {
+		for (struct json_array_element_s *i = endcontext->start; i != NULL; i = i->next) {
+			struct json_object_s *c = json_value_as_object(i->value);
+			if (!c)
+				return 0;
+			v = json_getpath(c, "user.username");
+			if (!v)
+				return 0;
+			struct json_string_s *username = json_value_as_string(v);
+			if (!username)
+				return 0;
+			if (0 != strcmp(username->string, config.username)) {
+				strcpy(game->opponent, username->string);
+				break;
 			}
 		}
 	}
-	return (values==3)?1:0;
+	return 1;
 }
 
 int
@@ -250,15 +271,12 @@ parse_game_list(const char *apiresp, size_t apiresplen, game *games)
 		free(root);
 		return 0;
 	}
-	for (struct json_object_element_s *i = data->start; i != NULL; i = i->next) {
-		if (0 == strcmp(i->name->string, "records")) {
-			struct json_array_s *records = json_value_as_array(i->value);
-			if (!records)
-				break;
-			for (struct json_array_element_s *j = records->start; j != NULL; j = j->next) {
-				count += parse_game(json_value_as_object(j->value), &games[count]);
-			}
-		}
+	struct json_value_s *rv = json_getpath(data, "records");
+	struct json_array_s *records = json_value_as_array(rv);
+	if (!records)
+		return count;
+	for (struct json_array_element_s *j = records->start; j != NULL; j = j->next) {
+		count += parse_game(json_value_as_object(j->value), &games[count]);
 	}
 	free(root);
 	return count;
@@ -276,26 +294,28 @@ save_game_to_file(const char *apiresp, size_t apiresplen, FILE *f)
 		free(root);
 		return 0;
 	}
-	for (struct json_object_element_s *i = root_obj->start; i != NULL; i = i->next) {
-		if (0 == strcmp(i->name->string, "success")) {
-			if (!json_value_is_true(i->value)) {
-				free(root);
-				return 0;
-			}
-		} else if (0 == strcmp(i->name->string, "game")) {
-			size_t len;
-			void *output = json_write_minified(i->value, &len);
-			len--; // do not include the NUL
-			size_t written = fwrite(output, 1, len, f);
-			free(output);
-			free(root);
-			if (written == len) {
-				return 1;
-			} else {
-				return 0;
-			}
+	struct json_value_s *v = json_getpath(root_obj, "success");
+	if (!json_value_is_true(v)) {
+		free(root);
+		return 0;
+	}
+
+	v = json_getpath(root_obj, "game");
+	if (v) {
+		size_t len;
+		void *output = json_write_minified(v, &len);
+		len--; // do not include the NUL
+		size_t written = fwrite(output, 1, len, f);
+		free(output);
+		free(root);
+		if (written == len) {
+			return 1;
+		} else {
+			return 0;
 		}
 	}
+	free(root);
+	return 0;
 }
 
 const char *
@@ -445,7 +465,7 @@ main(int argc, char **argv)
 	slist1 = curl_slist_append(slist1, auth);
 	curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, slist1);
 	for (int i = 0; i < gamec; i++) {
-		char *filename = generate_filename(&games[i]);
+		const char *filename = generate_filename(&games[i]);
 		if(access(filename, F_OK) != -1 ) {
 			printf("Game %s already saved, skipping...\n", games[i].replayid);
 			continue;
