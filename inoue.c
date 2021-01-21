@@ -264,6 +264,40 @@ parse_game_list(const char *apiresp, size_t apiresplen, game *games)
 	return count;
 }
 
+int
+save_game_to_file(const char *apiresp, size_t apiresplen, FILE *f)
+{
+	int ret = 1;
+	struct json_value_s *root = json_parse(apiresp, apiresplen);
+	if (!root)
+		return 0;
+	struct json_object_s *root_obj = json_value_as_object(root);
+	if (!root_obj) {
+		free(root);
+		return 0;
+	}
+	for (struct json_object_element_s *i = root_obj->start; i != NULL; i = i->next) {
+		if (0 == strcmp(i->name->string, "success")) {
+			if (!json_value_is_true(i->value)) {
+				free(root);
+				return 0;
+			}
+		} else if (0 == strcmp(i->name->string, "game")) {
+			size_t len;
+			void *output = json_write_minified(i->value, &len);
+			len--; // do not include the NUL
+			size_t written = fwrite(output, 1, len, f);
+			free(output);
+			free(root);
+			if (written == len) {
+				return 1;
+			} else {
+				return 0;
+			}
+		}
+	}
+}
+
 const char *
 generate_filename(game *g)
 {
@@ -364,7 +398,7 @@ main(int argc, char **argv)
 	curl_easy_setopt(hnd, CURLOPT_USERAGENT, config.useragent);
 	curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, recv_callback);
 	curl_easy_setopt(hnd, CURLOPT_WRITEDATA, buf);
-	curl_easy_setopt(hnd, CURLOPT_FAILONERROR, 1);
+	// curl_easy_setopt(hnd, CURLOPT_FAILONERROR, 1);
 
 	puts("Resolving username...");
 	char url_buf[128];
@@ -403,16 +437,24 @@ main(int argc, char **argv)
 		char ts[64];
 		strftime(ts, 64, "%Y-%m-%d %H:%M", &games[i].ts);
 		printf("Found game '%s' against '%s', played on %s\n", games[i].replayid, games[i].opponent, ts);
-		printf("\tFilename: '%s'\n", generate_filename(&games[i]));
 	}
 
 	struct curl_slist *slist1 = NULL;
 	char auth[256];
 	snprintf(auth, 256, "Authorization: Bearer %s", config.token);
-	slist1 = curl_slist_append(slist1, "Authorization: Bearer %s");
+	slist1 = curl_slist_append(slist1, auth);
 	curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, slist1);
 	for (int i = 0; i < gamec; i++) {
-		break;
+		char *filename = generate_filename(&games[i]);
+		if(access(filename, F_OK) != -1 ) {
+			printf("Game %s already saved, skipping...\n", games[i].replayid);
+			continue;
+		}
+		FILE *f = fopen(filename, "w");
+		if (!f) {
+			perror("inoue: couldnt open output file");
+			goto main_cleanup;
+		}
 		snprintf(url_buf, 128, "https://tetr.io/api/games/%s", games[i].replayid);
 		curl_easy_setopt(hnd, CURLOPT_URL, url_buf);
 		buffer_truncate(buf);
@@ -420,8 +462,18 @@ main(int argc, char **argv)
 		ret = curl_easy_perform(hnd);
 		if (ret != CURLE_OK) {
 			fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
+			fclose(f);
+			unlink(filename); // delete the failed file, so the download can be retried
 			goto main_cleanup;
 		}
+		if (!save_game_to_file(buffer_getstr(buf), buffer_getstrlen(buf), f)) {
+			fprintf(stderr, "Saving failed!\n");
+			fclose(f);
+			unlink(filename);
+			continue;
+		}
+		fclose(f);
+
 	}
 
 	// if the program is exited via goto, then it will return FAILURE instead
