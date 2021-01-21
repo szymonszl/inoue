@@ -1,0 +1,6 @@
+# This is an example configuration file for Inoue.
+username OSK
+token eyJAAAAAAAAAAAAAAAAAA.eyJBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.PYCCCCCCCCCCC
+filenameformat %Y-%m-%d %H-%M %U vs %O.ttrm
+# for a game played by OSK against SZY on January 2nd 2021 at 12:34, the file will be called
+# 2021-01-02 12-34 OSK vs SZY.ttrm
