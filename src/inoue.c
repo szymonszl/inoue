@@ -165,7 +165,7 @@ parse_game(struct json_object_s *json, game *game)
 	part = strtok(NULL, "");
 	strcat(tmp, &part[3]);
 	memset(&game->ts, 0, sizeof(struct tm));
-	if (!strptime(ts->string, "%Y-%m-%dT%H:%M:%S %Z", &game->ts)) {
+	if (!strptime(tmp, "%Y-%m-%dT%H:%M:%S %z", &game->ts)) {
 		return 0;
 	}
 
