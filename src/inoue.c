@@ -25,20 +25,23 @@ loadcfg()
 		perror("inoue: couldnt open config file");
 		return 0;
 	}
+	char buf[512];
 	char key[32];
-	char val[512];
-	while (fscanf(f, "%32[^ \n] %512[^\n]%*c", key, val) == 2) {
-		if (key[0] == '#')
-			continue; // ignore comments
-		else if (0 == strcmp(key, "username"))
-			config.username = strdup(val);
-		else if (0 == strcmp(key, "token"))
-			config.token = strdup(val);
-		else if (0 == strcmp(key, "useragent"))
-			config.useragent = strdup(val);
-		else if (0 == strcmp(key, "filenameformat"))
-			config.filenameformat = strdup(val);
-		else fprintf(stderr, "Warning: unrecognized key \"%s\" in config\n", key);
+	char val[256];
+	while (fgets(buf, 511, f)) {
+		if (sscanf(buf, "%32[^ \n] %256[^\n]%*c", key, val) != EOF) {
+			if (key[0] == '#')
+				continue; // ignore comments
+			else if (0 == strcmp(key, "username"))
+				config.username = strdup(val);
+			else if (0 == strcmp(key, "token"))
+				config.token = strdup(val);
+			else if (0 == strcmp(key, "useragent"))
+				config.useragent = strdup(val);
+			else if (0 == strcmp(key, "filenameformat"))
+				config.filenameformat = strdup(val);
+			else fprintf(stderr, "Warning: unrecognized key \"%s\" in config\n", key);
+		}
 	}
 	fclose(f);
 	if (!config.useragent) {
