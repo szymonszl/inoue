@@ -1,5 +1,7 @@
 # Building on Windows
 
+## Warning: this document is intended for developers. If you are just a user, please check the [Releases](https://github.com/szymonszl/inoue/releases) to get the program.
+
 I am not normally a Windows developer, and it took me a lot of trouble to figure out how to build Inoue on Windows. If you know how to simplify this process, please get in touch!
 
 You will need Visual Studio with CMake and vcpkg.
@@ -46,13 +48,14 @@ inoue/
 |  |- zlib1.dll
 |- inoue.bat
 |- inoue.cfg
+|- README.md
 ```
 
 `inoue.cfg` is just `inoue.cfg.example` renamed to make editing easier. `inoue.bat` is a the following launcher:
 
 ```
 @title Inoue
-@%~dp0/bin/inoue.exe %~dp0
+@"%~dp0/bin/inoue.exe" %~dp0
 @pause
 ```
 
