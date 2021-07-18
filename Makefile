@@ -1,7 +1,7 @@
 all: build/inoue
 
 build/inoue: build/inoue.o build/buffer.o
-	cc -g -o build/inoue -Wall -lcurl build/inoue.o build/buffer.o
+	cc -g -o build/inoue -Wall build/inoue.o build/buffer.o -lcurl
 
 build/inoue.o: src/inoue.c
 	mkdir -p build
