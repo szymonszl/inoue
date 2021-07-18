@@ -231,6 +231,12 @@ save_game_to_file(const char *apiresp, size_t apiresplen, FILE *f)
 	}
 	struct json_value_s *v = json_getpath(root_obj, "success");
 	if (!json_value_is_true(v)) {
+		struct json_value_s *e = json_getpath(root_obj, "errors");
+		if (e) {
+			char *out = json_write_minified(e, NULL);
+			printf("Server returned error: %s\n", out);
+			free(out);
+		}
 		free(root);
 		return 0;
 	}
