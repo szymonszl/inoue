@@ -402,6 +402,7 @@ main(int argc, char **argv)
 	char auth[256];
 	snprintf(auth, 256, "Authorization: Bearer %s", config.token);
 	slist1 = curl_slist_append(slist1, auth);
+        slist1 = curl_slist_append(slist1, "Accept: application/json");
 	curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, slist1);
 	for (int i = 0; i < gamec; i++) {
 		const char *filename = generate_filename(&games[i]);
