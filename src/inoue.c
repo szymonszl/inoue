@@ -48,7 +48,7 @@ loadcfg()
 		config.useragent = "Mozilla/5.0 (only pretending; Inoue/v1)";
 	}
 	if (!config.filenameformat) {
-		config.filenameformat = "%Y-%m-%d_%H-%M_%O.ttr";
+		config.filenameformat = "%Y-%m-%d_%H-%M_%O.ttrm";
 	}
 	if (!config.username) {
 		fprintf(stderr, "No username specified!\n");

@@ -40,7 +40,7 @@ Lines starting in `#` are considered comments. A simple example is provided as [
 
 Supported configuration fields:
 - `username` - (required) the username of the user whose replays should be downloaded. Case insensitive.
-- `filenameformat` - a format string used for generating output filenames. All sequences in the format %a (percent - letter) will be replaced with special values. See the table further. Defaults to `%Y-%m-%d_%H-%M_%O.ttr`.
+- `filenameformat` - a format string used for generating output filenames. All sequences in the format %a (percent - letter) will be replaced with special values. See the table further. Defaults to `%Y-%m-%d_%H-%M_%O.ttrm`.
 - `useragent` - the browser [user agent](https://en.wikipedia.org/wiki/User_agent). Defaults to `Mozilla/5.0 (only pretending; Inoue/v1)`. You shouldn't have to change this.
 - `apiurl` - the pattern for a request to download a replay. A `%s` will be replaced with the replay ID. Defaults to `https://inoue.szy.lol/api/replay/%s`. You shouldn't have to change this.
 
