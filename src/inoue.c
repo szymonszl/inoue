@@ -303,7 +303,7 @@ recv_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 int
 main(int argc, char **argv)
 {
-	printf("INOUE v0.1\n");
+	printf("INOUE v0.3\n");
 	printf("curl ver: %s\n", curl_version());
 	int exitcode = EXIT_FAILURE;
 
