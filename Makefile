@@ -1,15 +1,17 @@
+OBJS = build/inoue.o build/buffer.o build/util.o
+DEPS = src/inoue.h src/json.h
+CFLAGS = -Wall -g `pkg-config --cflags libcurl`
+LDFLAGS = `pkg-config --libs libcurl`
+
 all: build/inoue
 
-build/inoue: build/inoue.o build/buffer.o
-	cc -g -o build/inoue -Wall build/inoue.o build/buffer.o -lcurl
+build/inoue: $(OBJS)
+	@mkdir -p build
+	$(CC) $(LDFLAGS) -o $@ $^
 
-build/inoue.o: src/inoue.c
-	mkdir -p build
-	cc -g -o build/inoue.o -c -Wall src/inoue.c
-
-build/buffer.o: src/buffer.c
-	mkdir -p build
-	cc -g -o build/buffer.o -c -Wall src/buffer.c
+$(OBJS): build/%.o: src/%.c $(DEPS)
+	@mkdir -p build
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 # debug targets; they assume build/data exists and has a proper config file
 run: build/inoue

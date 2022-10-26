@@ -1,7 +1,16 @@
-#include "buffer.h"
+#include <stdlib.h>
+#include <string.h>
+
+#include "inoue.h"
+
+struct buffer {
+	size_t size;
+	size_t cursor;
+	char *buf;
+};
 
 buffer *
-buffer_new()
+buffer_new(void)
 {
 	buffer *b = malloc(sizeof(buffer));
 	if (!b)
