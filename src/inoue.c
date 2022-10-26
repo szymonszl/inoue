@@ -31,10 +31,10 @@ json_get_api_data(struct json_value_s *root)
 }
 
 int
-parse_userid(const char *apiresp, size_t apiresplen, char *userid)
+parse_userid(buffer *buf, char *userid)
 {
 	int ret = 1;
-	struct json_value_s *root = json_parse(apiresp, apiresplen);
+	struct json_value_s *root = json_parse(buffer_str(buf), buffer_strlen(buf));
 	struct json_object_s *data = json_get_api_data(root);
 	if (data) {
 		struct json_value_s *idv = json_getpath(data, "user._id");
@@ -102,10 +102,9 @@ parse_game(struct json_object_s *json, game *game)
 }
 
 int
-parse_game_list(const char *apiresp, size_t apiresplen, game *games)
+parse_game_list(buffer *buf, game *games)
 {
-	struct json_parse_result_s result;
-	struct json_value_s *root = json_parse_ex(apiresp, apiresplen, 0, NULL, NULL, &result);
+	struct json_value_s *root = json_parse(buffer_str(buf), buffer_strlen(buf));
 	if (!root)
 		return 0;
 	struct json_object_s *data = json_get_api_data(root);
@@ -123,19 +122,6 @@ parse_game_list(const char *apiresp, size_t apiresplen, game *games)
 	}
 	free(root);
 	return count;
-}
-
-int
-save_game_to_file(const char *resp, size_t len, FILE *f)
-{
-	if (len < 1) // sanity check
-		return 0;
-	size_t written = fwrite(resp, 1, len, f);
-	if (written == len) {
-		return 1;
-	}
-	perror("failed to save");
-	return 0;
 }
 
 const char *
@@ -250,7 +236,7 @@ main(int argc, char **argv)
 	}
 
 	char userid[64];
-	if (parse_userid(buffer_str(buf), buffer_strlen(buf), userid)) {
+	if (parse_userid(buf, userid)) {
 		fprintf(stderr, "Invalid server response while resolving username!\n");
 		goto main_cleanup;
 	}
@@ -266,7 +252,7 @@ main(int argc, char **argv)
 	}
 
 	game games[10];
-	int gamec = parse_game_list(buffer_str(buf), buffer_strlen(buf), games); // FIXME: fails
+	int gamec = parse_game_list(buf, games); // FIXME: fails
 	if (!gamec) {
 		fprintf(stderr, "Error while parsing games, exiting!\n");
 		goto main_cleanup;
@@ -308,7 +294,7 @@ main(int argc, char **argv)
 			unlink(filename);
 			continue;
 		}
-		if (!save_game_to_file(buffer_str(buf), buffer_strlen(buf), f)) {
+		if (!buffer_save(buf, f)) {
 			fprintf(stderr, "Saving failed!\n");
 			fclose(f);
 			unlink(filename);

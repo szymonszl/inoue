@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -98,4 +99,15 @@ buffer_free(buffer *b)
 		free(b->buf);
 	b->buf = 0;
 	free(b);
+}
+
+int
+buffer_save(buffer *b, FILE *f)
+{
+	size_t written = fwrite(buffer_str(b), 1, buffer_strlen(b), f);
+	if (written == buffer_strlen(b)) {
+		return 1;
+	}
+	perror("failed to save");
+	return 0;
 }

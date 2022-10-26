@@ -23,6 +23,7 @@ size_t buffer_appendchar(buffer *b, char c);
 const char *buffer_str(buffer *b);
 size_t buffer_strlen(buffer *b);
 void buffer_truncate(buffer *b);
+int buffer_save(buffer *b, FILE *f);
 
 
 #endif
