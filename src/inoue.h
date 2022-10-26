@@ -25,5 +25,8 @@ size_t buffer_strlen(buffer *b);
 void buffer_truncate(buffer *b);
 int buffer_save(buffer *b, FILE *f);
 
+int http_init(void);
+int http_get(const char *, buffer *, long *);
+void http_deinit(void);
 
 #endif

@@ -5,7 +5,6 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
-#include <curl/curl.h>
 #include "json.h"
 #include "winunistd.h"
 
@@ -188,17 +187,10 @@ generate_filename(game *g)
 	return buffer_str(buf);
 }
 
-size_t
-recv_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
-{
-	return buffer_appendbytes((buffer *)userdata, ptr, size*nmemb);
-}
-
 int
 main(int argc, char **argv)
 {
 	printf("INOUE v0.3\n");
-	printf("curl ver: %s\n", curl_version());
 	int exitcode = EXIT_FAILURE;
 
 	if (argc == 2) {
@@ -212,28 +204,17 @@ main(int argc, char **argv)
 		fprintf(stderr, "Configuration error, exiting!\n");
 		return EXIT_FAILURE;
 	}
-
-	CURLcode ret;
-	CURL *hnd;
 	buffer *buf = buffer_new();
-
-	curl_global_init(CURL_GLOBAL_ALL);
-	hnd = curl_easy_init();
-	curl_easy_setopt(hnd, CURLOPT_USERAGENT, config.useragent);
-	curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, recv_callback);
-	curl_easy_setopt(hnd, CURLOPT_WRITEDATA, buf);
-	// curl_easy_setopt(hnd, CURLOPT_FAILONERROR, 1);
+	if (!http_init()) {
+		fprintf(stderr, "failed to start HTTP library, exiting!\n");
+		return EXIT_FAILURE;
+	}
 
 	puts("Resolving username...");
 	char url_buf[128];
 	snprintf(url_buf, 128, "https://ch.tetr.io/api/users/%s", config.username);
-	curl_easy_setopt(hnd, CURLOPT_URL, url_buf);
-	ret = curl_easy_perform(hnd);
-
-	if (ret != CURLE_OK) {
-		fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
+	if (!http_get(url_buf, buf, NULL))
 		goto main_cleanup;
-	}
 
 	char userid[64];
 	if (parse_userid(buf, userid)) {
@@ -244,12 +225,8 @@ main(int argc, char **argv)
 
 	printf("Resolved UserID: '%s'\n", userid);
 	snprintf(url_buf, 128, "https://ch.tetr.io/api/streams/league_userrecent_%s", userid);
-	curl_easy_setopt(hnd, CURLOPT_URL, url_buf);
-	ret = curl_easy_perform(hnd);
-	if (ret != CURLE_OK) {
-		fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
+	if (!http_get(url_buf, buf, NULL))
 		goto main_cleanup;
-	}
 
 	game games[10];
 	int gamec = parse_game_list(buf, games); // FIXME: fails
@@ -275,19 +252,15 @@ main(int argc, char **argv)
 			goto main_cleanup;
 		}
 		snprintf(url_buf, 128, config.apiurl, games[i].replayid);
-		curl_easy_setopt(hnd, CURLOPT_URL, url_buf);
 		buffer_truncate(buf);
 		printf("Downloading %s... ", games[i].replayid);
 		fflush(stdout);
-		ret = curl_easy_perform(hnd);
-		if (ret != CURLE_OK) {
-			fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
+		long status;
+		if (!http_get(url_buf, buf, &status)) {
 			fclose(f);
 			unlink(filename); // delete the failed file, so the download can be retried
 			goto main_cleanup;
 		}
-		long status;
-		curl_easy_getinfo(hnd, CURLINFO_RESPONSE_CODE, &status);
 		if (status != 200) {
 			fprintf(stderr, "received error %ld from server: %s\n", status, buffer_str(buf));
 			fclose(f);
@@ -308,7 +281,7 @@ main(int argc, char **argv)
 	// if the program is exited via goto, then it will return FAILURE instead
 	exitcode = EXIT_SUCCESS;
 main_cleanup:
-	curl_easy_cleanup(hnd);
+	http_deinit();
 	buffer_free(buf);
 
 	return exitcode;

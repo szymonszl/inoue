@@ -1,4 +1,4 @@
-OBJS = build/inoue.o build/buffer.o build/util.o
+OBJS = build/inoue.o build/buffer.o build/util.o build/http.o
 DEPS = src/inoue.h src/json.h src/winunistd.h
 CFLAGS = -Wall -g `pkg-config --cflags libcurl`
 LDFLAGS = `pkg-config --libs libcurl`
