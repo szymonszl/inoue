@@ -1,5 +1,7 @@
-#ifndef INOUE_WINDOWS_COMPAT_H
-#define INOUE_WINDOWS_COMPAT_H
+#ifndef _WINUNISTD_H
+#define _WINUNISTD_H
+
+#ifdef _WIN32
 
 #include <direct.h>
 #include <io.h>
@@ -9,5 +11,9 @@
 #define access _access
 #define chdir _chdir
 #define unlink _unlink
+
+#else
+#include <unistd.h>
+#endif
 
 #endif

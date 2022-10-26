@@ -34,8 +34,6 @@ target_link_libraries(inoue wsock32 ws2_32)
 
 Remember to change `YOUR_PATH_TO_VCPKG`!
 
-Edit `inoue.c` to comment out `#include <unistd.h>` and add `#include "wincompat.h"`. This will add an implementation of strptime(), which Windows lacks, and add some compatibility hacks.
-
 You should then be able to compile Inoue, and find the EXE and two DLLs in the build output folder. You can use them as normal!
 
 The release I post contains the following files:

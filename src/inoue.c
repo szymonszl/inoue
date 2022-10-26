@@ -2,12 +2,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
 #include <curl/curl.h>
 #include "json.h"
+#include "winunistd.h"
 
 #include "inoue.h"
 
