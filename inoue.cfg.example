@@ -2,8 +2,6 @@
 
 # This is the user whose replays should be donwloaded
 username KAGARI
-# This is your login token
-token eyJAAAAAAAAAAAAAAAAAA.eyJBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB.PYCCCCCCCCCCC
 # This is the template for output filenames
 filenameformat %Y-%m-%d %H-%M %U vs %O.ttrm
 # for example, with this template a game played by OSK against SZY on January 2nd 2021 at 12:34 will be saved into:

@@ -12,7 +12,7 @@
 
 static struct {
 	char *username;
-	char *token;
+	char *apiurl;
 	char *useragent;
 	char *filenameformat;
 } config = {0};
@@ -34,8 +34,8 @@ loadcfg()
 				continue; // ignore comments
 			else if (0 == strcmp(key, "username"))
 				config.username = strdup(val);
-			else if (0 == strcmp(key, "token"))
-				config.token = strdup(val);
+			else if (0 == strcmp(key, "apiurl"))
+				config.apiurl = strdup(val);
 			else if (0 == strcmp(key, "useragent"))
 				config.useragent = strdup(val);
 			else if (0 == strcmp(key, "filenameformat"))
@@ -54,9 +54,8 @@ loadcfg()
 		fprintf(stderr, "No username specified!\n");
 		return 0;
 	}
-	if (!config.token) {
-		fprintf(stderr, "No token specified!\n");
-		return 0;
+	if (!config.apiurl) {
+		config.apiurl = "https://inoue.szy.lol/api/replay/%s";
 	}
 
 	for (int i = 0; config.username[i] != 0; i++)
@@ -219,43 +218,15 @@ parse_game_list(const char *apiresp, size_t apiresplen, game *games)
 }
 
 int
-save_game_to_file(const char *apiresp, size_t apiresplen, FILE *f)
+save_game_to_file(const char *resp, size_t len, FILE *f)
 {
-	struct json_value_s *root = json_parse(apiresp, apiresplen);
-	if (!root)
+	if (len < 1) // sanity check
 		return 0;
-	struct json_object_s *root_obj = json_value_as_object(root);
-	if (!root_obj) {
-		free(root);
-		return 0;
+	size_t written = fwrite(resp, 1, len, f);
+	if (written == len) {
+		return 1;
 	}
-	struct json_value_s *v = json_getpath(root_obj, "success");
-	if (!json_value_is_true(v)) {
-		struct json_value_s *e = json_getpath(root_obj, "errors");
-		if (e) {
-			char *out = json_write_minified(e, NULL);
-			printf("Server returned error: %s\n", out);
-			free(out);
-		}
-		free(root);
-		return 0;
-	}
-
-	v = json_getpath(root_obj, "game");
-	if (v) {
-		size_t len;
-		void *output = json_write_minified(v, &len);
-		len--; // do not include the NUL
-		size_t written = fwrite(output, 1, len, f);
-		free(output);
-		free(root);
-		if (written == len) {
-			return 1;
-		} else {
-			return 0;
-		}
-	}
-	free(root);
+	perror("failed to save");
 	return 0;
 }
 
@@ -398,12 +369,6 @@ main(int argc, char **argv)
 		printf("Found game '%s' against '%s', played on %s\n", games[i].replayid, games[i].opponent, ts);
 	}
 
-	struct curl_slist *slist1 = NULL;
-	char auth[256];
-	snprintf(auth, 256, "Authorization: Bearer %s", config.token);
-	slist1 = curl_slist_append(slist1, auth);
-        slist1 = curl_slist_append(slist1, "Accept: application/json");
-	curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, slist1);
 	for (int i = 0; i < gamec; i++) {
 		const char *filename = generate_filename(&games[i]);
 		if(access(filename, F_OK) != -1 ) {
@@ -415,16 +380,25 @@ main(int argc, char **argv)
 			perror("inoue: couldnt open output file");
 			goto main_cleanup;
 		}
-		snprintf(url_buf, 128, "https://tetr.io/api/games/%s", games[i].replayid);
+		snprintf(url_buf, 128, config.apiurl, games[i].replayid);
 		curl_easy_setopt(hnd, CURLOPT_URL, url_buf);
 		buffer_truncate(buf);
-		printf("Downloading %s...\n", games[i].replayid);
+		printf("Downloading %s... ", games[i].replayid);
+		fflush(stdout);
 		ret = curl_easy_perform(hnd);
 		if (ret != CURLE_OK) {
 			fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
 			fclose(f);
 			unlink(filename); // delete the failed file, so the download can be retried
 			goto main_cleanup;
+		}
+		long status;
+		curl_easy_getinfo(hnd, CURLINFO_RESPONSE_CODE, &status);
+		if (status != 200) {
+			fprintf(stderr, "received error %ld from server: %s\n", status, buffer_str(buf));
+			fclose(f);
+			unlink(filename);
+			continue;
 		}
 		if (!save_game_to_file(buffer_str(buf), buffer_strlen(buf), f)) {
 			fprintf(stderr, "Saving failed!\n");
@@ -433,6 +407,7 @@ main(int argc, char **argv)
 			continue;
 		}
 		fclose(f);
+		printf("OK!\n");
 
 	}
 

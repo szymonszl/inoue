@@ -40,9 +40,9 @@ Lines starting in `#` are considered comments. A simple example is provided as [
 
 Supported configuration fields:
 - `username` - (required) the username of the user whose replays should be downloaded. Case insensitive.
-- `token` - (required) your TETR.IO authentication token. **Case sensitive**. It *doesn't* have to be for the same account that is set in `username`. You can find it in TETR.IO's Local Storage in your browser's developer tools - see instructions for [Chrome or Tetrio Desktop](https://i.szymszl.xyz/1d72e5dd42.png).
 - `filenameformat` - a format string used for generating output filenames. All sequences in the format %a (percent - letter) will be replaced with special values. See the table further. Defaults to `%Y-%m-%d_%H-%M_%O.ttr`.
 - `useragent` - the browser [user agent](https://en.wikipedia.org/wiki/User_agent). Defaults to `Mozilla/5.0 (only pretending; Inoue/v1)`. You shouldn't have to change this.
+- `apiurl` - the pattern for a request to download a replay. A `%s` will be replaced with the replay ID. Defaults to `https://inoue.szy.lol/api/replay/%s`. You shouldn't have to change this.
 
 In `filenameformat`, percent-letter sequences will be replaced as follows:
 
@@ -65,12 +65,6 @@ In `filenameformat`, percent-letter sequences will be replaced as follows:
 
 The examples assume a game played by SZY against OSK on Mon Sep 14 07:37:13 PM 2020 (UTC). The date will be in the UTC timezone.
 **Invalid sequences will cause an error**, so if you want to put a single percent sign in your filename please use `%%`.
-
-## Security
-
-Inoue requires your user token in order to access the main game API. At the time, there is no other way to download replays. Your credentials aren't used for other reasons than to authenticate with the API.
-
-If you don't trust Inoue with your main account, feel free to use another one! You don't have to use your account to download your own replays. Make sure that you're not violating the TETR.IO alt policy though!
 
 ## Acknowledgements
 
