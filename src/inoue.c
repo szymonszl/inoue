@@ -74,17 +74,8 @@ parse_game(struct json_object_s *json, game *game)
 	struct json_string_s *ts = json_value_as_string(v);
 	if (!ts)
 		return 0;
-	// remove milliseconds from the timestamp
-	char copy[64];
-	char tmp[64] = {0};
-	strncpy(copy, ts->string, 64);
-	char *part = strtok(copy, ".");
-	strcat(tmp, part);
-	strcat(tmp, " ");
-	part = strtok(NULL, "");
-	strcat(tmp, &part[3]);
 	memset(&game->ts, 0, sizeof(struct tm));
-	if (!strptime(tmp, "%Y-%m-%dT%H:%M:%S %z", &game->ts)) {
+	if (!parse_ts(&game->ts, ts->string)) {
 		return 0;
 	}
 

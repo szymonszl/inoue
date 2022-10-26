@@ -2,7 +2,6 @@
 #define _INOUE_H
 
 #include <string.h>
-#include "json.h"
 
 extern struct _cfg {
 	char *username;
@@ -13,6 +12,7 @@ extern struct _cfg {
 int loadcfg(void);
 
 struct json_value_s *json_getpath(struct json_object_s *, const char *);
+int parse_ts(struct tm *, const char *);
 
 typedef struct buffer buffer;
 buffer *buffer_new(void);

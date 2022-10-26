@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #include "json.h"
 
 #include "inoue.h"
@@ -83,4 +84,20 @@ json_getpath(struct json_object_s *json, const char *path)
 	}
 	free(pth);
 	return cur;
+}
+
+int
+parse_ts(struct tm *t, const char *str)
+{
+	// %Y-%m-%dT%H:%M:%S %z
+	// 2022-10-23T20:53:14.779Z
+	int msec;
+	if (sscanf(str, "%u-%u-%uT%u:%u:%u.%uZ",
+			&t->tm_year, &t->tm_mon, &t->tm_mday,
+			&t->tm_hour, &t->tm_min, &t->tm_sec, &msec) == 7) {
+		t->tm_year -= 1900;
+		t->tm_mon -= 1;
+		return 1;
+	}
+	return 0;
 }

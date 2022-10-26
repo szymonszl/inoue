@@ -71,4 +71,3 @@ The examples assume a game played by SZY against OSK on Mon Sep 14 07:37:13 PM 2
 First of all, big thanks to osk for such an excellent game!
 
 This program uses the excellent [curl](https://curl.se/) library to connect to the servers, and the great [json.h](https://github.com/sheredom/json.h) header-only library to parse JSON.
-The Windows build uses NetBSD's [implementation of `strptime`](http://cvsweb.netbsd.org/bsdweb.cgi/src/lib/libc/time/strptime.c?rev=1.63&content-type=text/x-cvsweb-markup), with some slight modifications.
