@@ -13,9 +13,8 @@ enum tasktype {
 };
 
 static void
-dispatch(char *user, char *apiurl, char *format, enum tasktype type)
+dispatch(char *user, char *format, enum tasktype type)
 {
-	if (!apiurl) apiurl = "https://inoue.szy.lol/api/replay/%s";
 	const char *uid = resolve_username(user);
 	if (!uid) {
 		fprintf(stderr, "failed to resolve user %s!\n", user);
@@ -52,10 +51,10 @@ dispatch(char *user, char *apiurl, char *format, enum tasktype type)
 	}
 	char urlbuf[128];
 	snprintf(urlbuf, 128, urlfmt1, uid);
-	download_from_stream(urlbuf, format, user, apiurl);
+	download_from_stream(urlbuf, format, user);
 	if (urlfmt2) {
 		snprintf(urlbuf, 128, urlfmt2, uid);
-		download_from_stream(urlbuf, format, user, apiurl);
+		download_from_stream(urlbuf, format, user);
 	}
 }
 
@@ -66,7 +65,6 @@ enum cfgword {
 	CFG_40L,
 	CFG_BLITZ,
 	CFG_LEAGUE,
-	CFG_APIURL,
 	CFG_NEXT,
 };
 
@@ -74,7 +72,7 @@ static enum cfgword
 read_word(const char *c, const char **n)
 {
 	const char *words[] = {
-		"user", "saveas", "40l", "blitz", "league", "useapi", "also", NULL
+		"user", "saveas", "40l", "blitz", "league", "also", NULL
 	};
 	for (int i = 0; words[i] != NULL; i++) {
 		int l = strlen(words[i]);
@@ -152,7 +150,6 @@ loadcfg(void)
 	fclose(f);
 	const char *c = buffer_str(b);
 	char *user = NULL;
-	char *apiurl = NULL;
 	char *format = NULL;
 	enum tasktype type = TSK_NONE;
 	int err = 1;
@@ -195,9 +192,6 @@ loadcfg(void)
 			case CFG_FORMAT:
 				READ_VALUE(format);
 				break;
-			case CFG_APIURL:
-				READ_VALUE(apiurl);
-				break;
 			case CFG_40L:
 				CHECK_TYPE();
 				type = TSK_40L;
@@ -211,7 +205,7 @@ loadcfg(void)
 				type = TSK_LEAGUE;
 				break;
 			case CFG_NEXT:
-				dispatch(user, apiurl, format, type);
+				dispatch(user, format, type);
 				type = 0;
 				if (format) {
 					free(format);
@@ -220,7 +214,7 @@ loadcfg(void)
 				break;
 		}
 	}
-	dispatch(user, apiurl, format, type);
+	dispatch(user, format, type);
 	err = 0;
 exit:
 	buffer_free(b);

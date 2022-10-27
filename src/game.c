@@ -131,7 +131,7 @@ generate_filename(struct json_object_s *game, const char *format, const char *re
 }
 
 void
-download_game(struct json_object_s *game, const char *format, const char *user, const char *apiurl)
+download_game(struct json_object_s *game, const char *format, const char *user)
 {
 	static buffer *b = NULL;
 	if (!b) b = buffer_new();
@@ -163,7 +163,7 @@ download_game(struct json_object_s *game, const char *format, const char *user, 
 		return;
 	}
 	char urlbuf[128];
-	snprintf(urlbuf, 128, apiurl, replayid);
+	snprintf(urlbuf, 128, "https://inoue.szy.lol/api/replay/%s", replayid);
 	long status;
 	if (!http_get(urlbuf, b, &status)) {
 		fclose(f);
