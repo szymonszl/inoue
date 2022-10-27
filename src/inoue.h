@@ -10,6 +10,7 @@ extern struct _cfg {
 	char *filenameformat;
 } config;
 int loadcfg(void);
+int loadcfgnew(void);
 
 struct json_value_s *json_getpath(struct json_object_s *, const char *);
 int parse_ts(struct tm *, const char *);
@@ -24,6 +25,7 @@ const char *buffer_str(buffer *b);
 size_t buffer_strlen(buffer *b);
 void buffer_truncate(buffer *b);
 int buffer_save(buffer *b, FILE *f);
+void buffer_load(buffer *b, FILE *f);
 
 int http_init(void);
 int http_get(const char *, buffer *, long *);

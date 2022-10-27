@@ -199,7 +199,7 @@ main(int argc, char **argv)
 			return EXIT_FAILURE;
 		}
 	}
-
+	//return loadcfgnew();
 	if (!loadcfg()) {
 		fprintf(stderr, "Configuration error, exiting!\n");
 		return EXIT_FAILURE;

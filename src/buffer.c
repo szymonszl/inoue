@@ -111,3 +111,14 @@ buffer_save(buffer *b, FILE *f)
 	perror("failed to save");
 	return 0;
 }
+
+void
+buffer_load(buffer *b, FILE *f)
+{
+	char buf[1024];
+	int rl;
+	while ((rl = fread(buf, 1, 1024, f))) {
+		buffer_appendbytes(b, buf, rl);
+	}
+	return;
+}
