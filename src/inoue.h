@@ -2,6 +2,8 @@
 #define _INOUE_H
 
 #include <string.h>
+#include <time.h>
+struct json_object_s; // silence a warning
 
 int loadcfg(void);
 
@@ -20,8 +22,8 @@ void download_game(struct json_object_s *, const char *, const char *);
 typedef struct buffer buffer;
 buffer *buffer_new(void);
 void buffer_free(buffer *b);
-size_t buffer_appendbytes(buffer *b, char *data, size_t length);
-size_t buffer_appendstr(buffer *b, char *str);
+size_t buffer_appendbytes(buffer *b, const char *data, size_t length);
+size_t buffer_appendstr(buffer *b, const char *str);
 size_t buffer_appendchar(buffer *b, char c);
 const char *buffer_str(buffer *b);
 size_t buffer_strlen(buffer *b);

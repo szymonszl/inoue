@@ -40,7 +40,7 @@ ensure_size(buffer *b, size_t length) {
 }
 
 size_t
-buffer_appendbytes(buffer *b, char *data, size_t length)
+buffer_appendbytes(buffer *b, const char *data, size_t length)
 {
 	if (!ensure_size(b, length))
 		return 0;
@@ -52,7 +52,7 @@ buffer_appendbytes(buffer *b, char *data, size_t length)
 }
 
 size_t
-buffer_appendstr(buffer *b, char *str)
+buffer_appendstr(buffer *b, const char *str)
 {
 	return buffer_appendbytes(b, str, strlen(str));
 }
