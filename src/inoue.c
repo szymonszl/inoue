@@ -12,23 +12,6 @@
 
 struct _cfg config = {0};
 
-struct json_object_s *
-json_get_api_data(struct json_value_s *root)
-{
-	struct json_object_s *root_obj = json_value_as_object(root);
-	if (!root_obj)
-		return NULL;
-	for (struct json_object_element_s *i = root_obj->start; i != NULL; i = i->next) {
-		if (0 == strcmp(i->name->string, "success")) {
-			if (!json_value_is_true(i->value))
-				return NULL;
-		} else if (0 == strcmp(i->name->string, "data")) {
-			return json_value_as_object(i->value);
-		}
-	}
-	return NULL;
-}
-
 int
 parse_userid(buffer *buf, char *userid)
 {

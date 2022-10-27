@@ -12,8 +12,12 @@ extern struct _cfg {
 int loadcfg(void);
 int loadcfgnew(void);
 
+const char *resolve_username(const char *);
+
 struct json_value_s *json_getpath(struct json_object_s *, const char *);
+struct json_object_s *json_get_api_data(struct json_value_s *);
 int parse_ts(struct tm *, const char *);
+int endswith(const char *, const char *);
 
 typedef struct buffer buffer;
 buffer *buffer_new(void);

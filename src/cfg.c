@@ -5,6 +5,44 @@
 
 #include "inoue.h"
 
+enum tasktype {
+	TSK_NONE = 0,
+	TSK_40L,
+	TSK_BLITZ,
+	TSK_LEAGUE,
+};
+
+static void
+dispatch(char *user, char *apiurl, char *format, enum tasktype type)
+{
+	if (!apiurl) apiurl = "https://inoue.szy.lol/api/replay/%s";
+	const char *uid = resolve_username(user);
+	if (!uid) return;
+	switch (type) {
+		case TSK_NONE:
+			fprintf(stderr, "config: no task type selected!\n");
+			return;
+		case TSK_40L:
+			if (!format) format = "%Y-%m-%d_%H-%M_%T.ttr";
+			if (!endswith(format, ".ttr"))
+				fprintf(stderr, "WARN: wrong or no extension for singleplayer (expected .ttr)\n");
+			printf("40l stub\n");
+			break;
+		case TSK_BLITZ:
+			if (!format) format = "%Y-%m-%d_%H-%M_%b.ttr";
+			if (!endswith(format, ".ttr"))
+				fprintf(stderr, "WARN: wrong or no extension for singleplayer (expected .ttr)\n");
+			printf("blitz stub\n");
+			break;
+		case TSK_LEAGUE:
+			if (!format) format = "%Y-%m-%d_%H-%M_%O.ttrm";
+			if (!endswith(format, ".ttrm"))
+				fprintf(stderr, "WARN: wrong or no extension for multiplayer (expected .ttrm)\n");
+			printf("league stub\n");
+			break;
+	}
+}
+
 enum cfgword {
 	CFG_NONE = 0,
 	CFG_USER,
@@ -12,7 +50,6 @@ enum cfgword {
 	CFG_40L,
 	CFG_BLITZ,
 	CFG_LEAGUE,
-	CFG_USERAGENT,
 	CFG_APIURL,
 	CFG_NEXT,
 };
@@ -21,7 +58,7 @@ static enum cfgword
 read_word(const char *c, const char **n)
 {
 	const char *words[] = {
-		"user", "saveas", "40l", "blitz", "league", "useragent", "useapi", "also", NULL
+		"user", "saveas", "40l", "blitz", "league", "useapi", "also", NULL
 	};
 	for (int i = 0; words[i] != NULL; i++) {
 		int l = strlen(words[i]);
@@ -84,12 +121,6 @@ read_string(const char **_c)
 		}
 	}
 }
-enum tasktype {
-	TSK_NONE = 0,
-	TSK_40L,
-	TSK_BLITZ,
-	TSK_LEAGUE,
-};
 
 int
 loadcfgnew(void)
@@ -106,7 +137,6 @@ loadcfgnew(void)
 	const char *c = buffer_str(b);
 	char *user = NULL;
 	char *apiurl = NULL;
-	char *useragent = NULL;
 	char *format = NULL;
 	enum tasktype type = TSK_NONE;
 	int err = 1;
@@ -152,9 +182,6 @@ loadcfgnew(void)
 			case CFG_APIURL:
 				READ_VALUE(apiurl);
 				break;
-			case CFG_USERAGENT:
-				READ_VALUE(useragent);
-				break;
 			case CFG_40L:
 				CHECK_TYPE();
 				type = TSK_40L;
@@ -165,10 +192,10 @@ loadcfgnew(void)
 				break;
 			case CFG_LEAGUE:
 				CHECK_TYPE();
-				type = TSK_BLITZ;
+				type = TSK_LEAGUE;
 				break;
 			case CFG_NEXT:
-				printf("[process user %s for %d with fmt %s]\n", user, type, format);
+				dispatch(user, apiurl, format, type);
 				type = 0;
 				if (format) {
 					free(format);
@@ -177,7 +204,7 @@ loadcfgnew(void)
 				break;
 		}
 	}
-	printf("[process user %s for %d with fmt %s]\n", user, type, format);
+	dispatch(user, apiurl, format, type);
 	err = 0;
 exit:
 	buffer_free(b);

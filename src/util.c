@@ -86,6 +86,23 @@ json_getpath(struct json_object_s *json, const char *path)
 	return cur;
 }
 
+struct json_object_s *
+json_get_api_data(struct json_value_s *root)
+{
+	struct json_object_s *root_obj = json_value_as_object(root);
+	if (!root_obj)
+		return NULL;
+	for (struct json_object_element_s *i = root_obj->start; i != NULL; i = i->next) {
+		if (0 == strcmp(i->name->string, "success")) {
+			if (!json_value_is_true(i->value))
+				return NULL;
+		} else if (0 == strcmp(i->name->string, "data")) {
+			return json_value_as_object(i->value);
+		}
+	}
+	return NULL;
+}
+
 int
 parse_ts(struct tm *t, const char *str)
 {
@@ -100,4 +117,10 @@ parse_ts(struct tm *t, const char *str)
 		return 1;
 	}
 	return 0;
+}
+
+int
+endswith(const char *str, const char *suf)
+{
+	return strcmp(str+strlen(str)-strlen(suf), suf) == 0;
 }
