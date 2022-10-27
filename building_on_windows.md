@@ -2,6 +2,8 @@
 
 ## Warning: this document is intended for developers. If you are just a user, please check the [Releases](https://github.com/szymonszl/inoue/releases) to get the program.
 
+### Warning: This is out of date. I have been working on a better process, but it's not yet ready enough to document. (Spoiler: MSYS)
+
 I am not normally a Windows developer, and it took me a lot of trouble to figure out how to build Inoue on Windows. If you know how to simplify this process, please get in touch!
 
 You will need Visual Studio with CMake and vcpkg.

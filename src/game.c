@@ -96,7 +96,7 @@ generate_filename(struct json_object_s *game, const char *format, const char *re
 				{
 					double time = json_getdouble(game, "endcontext.finalTime", -1);
 					if (time > 0) {
-						snprintf(tmp, 32, "%f", time/1000.0);
+						snprintf(tmp, 32, "%.4f", time/1000.0);
 						buffer_appendstr(buf, tmp);
 					}
 				}

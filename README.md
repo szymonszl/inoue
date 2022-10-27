@@ -1,17 +1,19 @@
 # Inoue
 
-Inoue is a program for automatically downloading [TETR.IO](https://tetr.io) Tetra League replays.
+Inoue is a program for automatically downloading [TETR.IO](https://tetr.io) replays.
 
 ## How does it work?
 
-When you start Inoue, the program connects to TETR.IO and downloads your latest games that haven't been saved yet, and saves them as `.ttrm` files.
-As long as you run Inoue at least once every 10 games, all your games with be backed up!
+When you run Inoue, the program connects to TETR.IO, downloads the replays you want, and saves them.
+This includes both singleplayer (40L, Blitz) as well as multiplayer (Tetra League) games.
+As long as you run Inoue at least once every 10 games, all your replays with be backed up!
 
 ## Features
 
-- it downloads replays
+- it downloads all kinds of replays
 - runs on linux and windows
-- that's all
+- fancy filenames
+- what more could one need?
 
 ## Guide for Windows
 
@@ -35,36 +37,50 @@ Note: If you are a developer and want to compile the program yourself, please lo
 
 ## Configuration
 
-Inoue is controlled by a simple plaintext file called `inoue.cfg`. The file is structured in a simple `setting value` format.
-Lines starting in `#` are considered comments. A simple example is provided as [inoue.cfg.example](inoue.cfg.example).
+Inoue is controlled by a simple plaintext file called `inoue.cfg`. The file contains tasks (requests to download a set of replays),
+which are then executed. Every task needs to include the user and the kind of replay to be downloaded, and optionally
+a description how the file should be named.
 
-Supported configuration fields:
-- `username` - (required) the username of the user whose replays should be downloaded. Case insensitive.
-- `filenameformat` - a format string used for generating output filenames. All sequences in the format %a (percent - letter) will be replaced with special values. See the table further. Defaults to `%Y-%m-%d_%H-%M_%O.ttrm`.
-- `useragent` - the browser [user agent](https://en.wikipedia.org/wiki/User_agent). Defaults to `Mozilla/5.0 (only pretending; Inoue/v1)`. You shouldn't have to change this.
-- `apiurl` - the pattern for a request to download a replay. A `%s` will be replaced with the replay ID. Defaults to `https://inoue.szy.lol/api/replay/%s`. You shouldn't have to change this.
+Example configuration file:
+```
+user szy 40l saveas "%Y-%m-%d %H-%M 40L %T.ttr"
+also blitz saveas "%Y-%m-%d %H-%M Blitz %b.ttr"
+also league
+also user osk league saveas %u_vs_%o_%s.ttrm
+```
+This will download `szy`'s 40L games, named like `2020-10-22 10-48 40L 1'02.606.ttr`, then `szy`'s Blitz games named like `2020-05-12 10-25 Blitz 64886.ttr`, and finally `osk`'s Tetra League games under `osk_vs_paradoxiem_1653256831.ttrm`.
 
-In `filenameformat`, percent-letter sequences will be replaced as follows:
+The user is marked by the word `user` followed by the username or userID, and the type of replay is marked by `40l`, `blitz`, `league`.
+The description for the filename is marked by the word `saveas` followed by a format string, which can be quoted.
+Tasks are delimited by the word `also`. If a task does not define a user, the user from the previous task is assumed.
 
-| sequence | replacement                                                               | example                    |
-|----------|---------------------------------------------------------------------------|----------------------------|
-| `%u`     | the user whose replay was downloaded, lowercase                           | `szy`                      |
-| `%U`     | the user whose replay was downloaded, uppercase                           | `SZY`                      |
-| `%o`     | the opponent of the user, lowercase                                       | `osk`                      |
-| `%O`     | the opponent of the user, uppercase                                       | `OSK`                      |
-| `%r`     | the full replay ID of the game                                            | `5fe276147222310b7a4e1f33` |
-| `%Y`     | the year of the game                                                      | `2020`                     |
-| `%y`     | the two-digit year of the game                                            | `20`                       |
-| `%m`     | the month of the game                                                     | `09`                       |
-| `%d`     | the day of the game                                                       | `14`                       |
-| `%H`     | the hour of the game                                                      | `19`                       |
-| `%M`     | the minute of the game                                                    | `37`                       |
-| `%S`     | the second of the game                                                    | `13`                       |
-| `%s`     | the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time) of the game | `1600112233`               |
-| `%%`     | a single percent character                                                | `%`                        |
+Words and values are delimited by whitespace (spaces, newlines).
 
-The examples assume a game played by SZY against OSK on Mon Sep 14 07:37:13 PM 2020 (UTC). The date will be in the UTC timezone.
+Filename formatting patterns (passed to `saveas`) can contain percent-letter sequences (as in, `%a`), which will be replaced by values as follows:
+
+| sequence | replacement                                                               | availability | example                    |
+|----------|---------------------------------------------------------------------------|--------------|----------------------------|
+| `%u`     | the user whose replay was downloaded, lowercase                           | always       | `szy`                      |
+| `%U`     | the user whose replay was downloaded, uppercase                           | always       | `SZY`                      |
+| `%r`     | the full replay ID of the game                                            | always       | `5fe276147222310b7a4e1f33` |
+| `%o`     | the opponent of the user, lowercase                                       | TL only      | `osk`                      |
+| `%O`     | the opponent of the user, uppercase                                       | TL only      | `OSK`                      |
+| `%b`     | the score gained in the replay                                            | SP only      | `64886`                    |
+| `%t`     | the length of the game, in seconds with decimals                          | SP only      | `62.6067`                  |
+| `%T`     | the length of the game, in minutes, seconds, and milliseconds             | SP only      | `1'02.606`                  |
+| `%Y`     | the year of the game                                                      | always       | `2020`                     |
+| `%y`     | the two-digit year of the game                                            | always       | `20`                       |
+| `%m`     | the month of the game                                                     | always       | `09`                       |
+| `%d`     | the day of the game                                                       | always       | `14`                       |
+| `%H`     | the hour of the game                                                      | always       | `19`                       |
+| `%M`     | the minute of the game                                                    | always       | `37`                       |
+| `%S`     | the second of the game                                                    | always       | `13`                       |
+| `%s`     | the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time) of the game | always       | `1600112233`               |
+| `%%`     | a single percent character                                                | always       | `%`                        |
+
+The multiplayer examples assume a game played by SZY against OSK on Mon Sep 14 07:37:13 PM 2020 (UTC). The date will be in the UTC timezone.
 **Invalid sequences will cause an error**, so if you want to put a single percent sign in your filename please use `%%`.
+Sequences not related to the type of game (like opponent name in singleplayer) will be replaced with nothing.
 
 ## Acknowledgements
 
