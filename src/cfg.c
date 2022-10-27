@@ -52,10 +52,10 @@ dispatch(char *user, char *apiurl, char *format, enum tasktype type)
 	}
 	char urlbuf[128];
 	snprintf(urlbuf, 128, urlfmt1, uid);
-	download_from_stream(urlbuf, format, apiurl);
+	download_from_stream(urlbuf, format, user, apiurl);
 	if (urlfmt2) {
 		snprintf(urlbuf, 128, urlfmt2, uid);
-		download_from_stream(urlbuf, format, apiurl);
+		download_from_stream(urlbuf, format, user, apiurl);
 	}
 }
 

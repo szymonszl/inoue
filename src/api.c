@@ -59,7 +59,7 @@ resolve_username(const char *username)
 }
 
 void
-download_from_stream(const char *url, const char *format, const char *apiurl)
+download_from_stream(const char *url, const char *format, const char *user, const char *apiurl)
 {
 	static buffer *b = NULL;
 	if (!b) b = buffer_new();
@@ -83,7 +83,7 @@ download_from_stream(const char *url, const char *format, const char *apiurl)
 		struct json_array_s *records = json_value_as_array(rv);
 		if (records) {
 			for (struct json_array_element_s *j = records->start; j != NULL; j = j->next) {
-				download_game(json_value_as_object(j->value), format, apiurl);
+				download_game(json_value_as_object(j->value), format, user, apiurl);
 			}
 		}
 	}
