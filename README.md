@@ -44,8 +44,8 @@ a description how the file should be named.
 Example configuration file:
 ```
 user szy 40l saveas "%Y-%m-%d %H-%M 40L %T.ttr"
-also blitz saveas "%Y-%m-%d %H-%M Blitz %b.ttr"
-also league
+also blitz saveas "%Y-%m-%d %H-%M Blitz %b.ttr" # will assume szy from earlier task
+also league # with default format
 also user osk league saveas %u_vs_%o_%s.ttrm
 ```
 This will download `szy`'s 40L games, named like `2020-10-22 10-48 40L 1'02.606.ttr`, then `szy`'s Blitz games named like `2020-05-12 10-25 Blitz 64886.ttr`, and finally `osk`'s Tetra League games under `osk_vs_paradoxiem_1653256831.ttrm`.
@@ -54,7 +54,8 @@ The user is marked by the word `user` followed by the username or userID, and th
 The description for the filename is marked by the word `saveas` followed by a format string, which can be quoted.
 Tasks are delimited by the word `also`. If a task does not define a user, the user from the previous task is assumed.
 
-Words and values are delimited by whitespace (spaces, newlines).
+Words and values are delimited by whitespace (spaces, newlines). Comments can be started with the `#` character and and last until the end of line,
+but must be preceded by whitespace.
 
 Filename formatting patterns (passed to `saveas`) can contain percent-letter sequences (as in, `%a`), which will be replaced by values as follows:
 
@@ -67,7 +68,7 @@ Filename formatting patterns (passed to `saveas`) can contain percent-letter seq
 | `%O`     | the opponent of the user, uppercase                                       | TL only      | `OSK`                      |
 | `%b`     | the score gained in the replay                                            | SP only      | `64886`                    |
 | `%t`     | the length of the game, in seconds with decimals                          | SP only      | `62.6067`                  |
-| `%T`     | the length of the game, in minutes, seconds, and milliseconds             | SP only      | `1'02.606`                  |
+| `%T`     | the length of the game, in minutes, seconds, and milliseconds             | SP only      | `1'02.606`                 |
 | `%Y`     | the year of the game                                                      | always       | `2020`                     |
 | `%y`     | the two-digit year of the game                                            | always       | `20`                       |
 | `%m`     | the month of the game                                                     | always       | `09`                       |
@@ -81,6 +82,11 @@ Filename formatting patterns (passed to `saveas`) can contain percent-letter seq
 The multiplayer examples assume a game played by SZY against OSK on Mon Sep 14 07:37:13 PM 2020 (UTC). The date will be in the UTC timezone.
 **Invalid sequences will cause an error**, so if you want to put a single percent sign in your filename please use `%%`.
 Sequences not related to the type of game (like opponent name in singleplayer) will be replaced with nothing.
+
+If a pattern is not specified with `saveas`, the following patterns are used:  
+40L: `%Y-%m-%d_%H-%M_%T.ttr`  
+Blitz: `%Y-%m-%d_%H-%M_%b.ttr`  
+TL: `%Y-%m-%d_%H-%M_%O.ttrm`
 
 ## Acknowledgements
 

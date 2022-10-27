@@ -12,7 +12,7 @@
 int
 main(int argc, char **argv)
 {
-	printf("INOUE v0.3\n");
+	printf("INOUE v0.4\n");
 	int exitcode = EXIT_FAILURE;
 
 	if (argc == 2) {

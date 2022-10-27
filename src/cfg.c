@@ -164,6 +164,7 @@ loadcfg(void)
 					break;
 				}
 			}
+			continue;
 		}
 		if (!*c)
 			break; // eof
