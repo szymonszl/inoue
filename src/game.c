@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "winunistd.h"
 #include "json.h"
 
 #include "inoue.h"
@@ -132,6 +133,10 @@ generate_filename(struct json_object_s *game, const char *format, const char *re
 void
 download_game(struct json_object_s *game, const char *format, const char *user, const char *apiurl)
 {
+	static buffer *b = NULL;
+	if (!b) b = buffer_new();
+	buffer_truncate(b);
+
 	if (!game)
 		return;
 
@@ -141,9 +146,42 @@ download_game(struct json_object_s *game, const char *format, const char *user, 
 
 	const char *filename = generate_filename(game, format, replayid, user);
 	if (!filename) {
-		fprintf(stderr, "failed to generate filename\n");
+		fprintf(stderr, "failed to generate filename for %s\n", replayid);
 		return;
 	}
-	printf("%s\n", filename);
-	return;
+
+	if(access(filename, F_OK) != -1 ) {
+		printf("Game %s already saved, skipping...\n", replayid);
+		return;
+	}
+
+	printf("Downloading %s -> %s... ", replayid, filename);
+	fflush(stdout);
+	FILE *f = fopen(filename, "wb");
+	if (!f) {
+		perror("couldnt open output file");
+		return;
+	}
+	char urlbuf[128];
+	snprintf(urlbuf, 128, apiurl, replayid);
+	long status;
+	if (!http_get(urlbuf, b, &status)) {
+		fclose(f);
+		unlink(filename); // delete the failed file, so the download can be retried
+		return;
+	}
+	if (status != 200) {
+		fprintf(stderr, "received error %ld from server: %s\n", status, buffer_str(b));
+		fclose(f);
+		unlink(filename);
+		return;
+	}
+	if (!buffer_save(b, f)) {
+		fprintf(stderr, "Saving failed!\n");
+		fclose(f);
+		unlink(filename);
+		return;
+	}
+	fclose(f);
+	printf("OK!\n");
 }

@@ -6,7 +6,6 @@
 #include <time.h>
 #include <ctype.h>
 #include "json.h"
-#include "winunistd.h"
 
 #include "inoue.h"
 
