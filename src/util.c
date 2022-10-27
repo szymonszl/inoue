@@ -42,21 +42,32 @@ json_getpath(struct json_object_s *json, const char *path)
 const char *
 json_getstring(struct json_object_s *json, const char *path, int empty)
 {
-	const char *ret = NULL;
-	if (!json) goto out;
 	struct json_value_s *v = json_getpath(json, path);
-	if (!v) goto out;
-	struct json_string_s *s = json_value_as_string(v);
-	if (!s) goto out;
-	ret = s->string;
-out:
-	if (ret)
-		return ret;
+	if (v) {
+		struct json_string_s *s = json_value_as_string(v);
+		if (s) {
+			return s->string;
+		}
+	}
 	if (empty) {
 		return "";
 	} else {
 		return NULL;
 	}
+}
+
+double
+json_getdouble(struct json_object_s *json, const char *path, double fallback)
+{
+	if (!json) return fallback;
+	struct json_value_s *v = json_getpath(json, path);
+	if (!v) return fallback;
+	struct json_number_s *n = json_value_as_number(v);
+	if (!n) return fallback;
+	double r;
+	if (sscanf(n->number, "%lf", &r) == 1)
+		return r;
+	return fallback;
 }
 
 struct json_object_s *

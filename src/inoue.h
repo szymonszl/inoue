@@ -9,6 +9,7 @@ const char *resolve_username(const char *);
 
 struct json_value_s *json_getpath(struct json_object_s *, const char *);
 const char *json_getstring(struct json_object_s *, const char *, int);
+double json_getdouble(struct json_object_s *, const char *, double);
 struct json_object_s *json_get_api_data(struct json_value_s *);
 int parse_ts(struct tm *, const char *);
 int endswith(const char *, const char *);

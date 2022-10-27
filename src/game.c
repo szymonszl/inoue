@@ -81,6 +81,37 @@ generate_filename(struct json_object_s *game, const char *format, const char *re
 				}
 				buffer_appendstr(buf, tmp);
 				break;
+			case 'b':
+				{
+					double score = json_getdouble(game, "endcontext.score", -1);
+					if (score > 0) {
+						snprintf(tmp, 32, "%ld", (long)score);
+						buffer_appendstr(buf, tmp);
+					}
+				}
+				break;
+			case 't':
+				{
+					double time = json_getdouble(game, "endcontext.finalTime", -1);
+					if (time > 0) {
+						snprintf(tmp, 32, "%f", time/1000.0);
+						buffer_appendstr(buf, tmp);
+					}
+				}
+				break;
+			case 'T':
+				{
+					double time = json_getdouble(game, "endcontext.finalTime", -1);
+					if (time > 0) {
+						int ms = ((int)time) % 1000;
+						int s = ((int)time) / 1000;
+						int m = s / 60;
+						s %= 60;
+						snprintf(tmp, 32, "%d'%02d.%03d", m, s, ms);
+						buffer_appendstr(buf, tmp);
+					}
+				}
+				break;
 			case 'r':
 				buffer_appendstr(buf, replayid);
 				break;
