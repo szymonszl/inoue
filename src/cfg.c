@@ -17,7 +17,11 @@ dispatch(char *user, char *apiurl, char *format, enum tasktype type)
 {
 	if (!apiurl) apiurl = "https://inoue.szy.lol/api/replay/%s";
 	const char *uid = resolve_username(user);
-	if (!uid) return;
+	if (!uid) {
+		fprintf(stderr, "failed to resolve user %s!\n", user);
+		return;
+	}
+	const char *urlfmt1, *urlfmt2 = NULL;
 	switch (type) {
 		case TSK_NONE:
 			fprintf(stderr, "config: no task type selected!\n");
@@ -26,20 +30,32 @@ dispatch(char *user, char *apiurl, char *format, enum tasktype type)
 			if (!format) format = "%Y-%m-%d_%H-%M_%T.ttr";
 			if (!endswith(format, ".ttr"))
 				fprintf(stderr, "WARN: wrong or no extension for singleplayer (expected .ttr)\n");
-			printf("40l stub\n");
+			urlfmt1 = "https://ch.tetr.io/api/streams/40l_userrecent_%s";
+			urlfmt2 = "https://ch.tetr.io/api/streams/40l_userbest_%s";
+			printf("downloading 40L from %s...\n", user);
 			break;
 		case TSK_BLITZ:
 			if (!format) format = "%Y-%m-%d_%H-%M_%b.ttr";
 			if (!endswith(format, ".ttr"))
 				fprintf(stderr, "WARN: wrong or no extension for singleplayer (expected .ttr)\n");
-			printf("blitz stub\n");
+			urlfmt1 = "https://ch.tetr.io/api/streams/blitz_userrecent_%s";
+			urlfmt2 = "https://ch.tetr.io/api/streams/blitz_userbest_%s";
+			printf("downloading Blitz from %s...\n", user);
 			break;
 		case TSK_LEAGUE:
 			if (!format) format = "%Y-%m-%d_%H-%M_%O.ttrm";
 			if (!endswith(format, ".ttrm"))
 				fprintf(stderr, "WARN: wrong or no extension for multiplayer (expected .ttrm)\n");
-			printf("league stub\n");
+			urlfmt1 = "https://ch.tetr.io/api/streams/league_userrecent_%s";
+			printf("downloading Tetra League from %s...\n", user);
 			break;
+	}
+	char urlbuf[128];
+	snprintf(urlbuf, 128, urlfmt1, uid);
+	download_from_stream(urlbuf, format, apiurl);
+	if (urlfmt2) {
+		snprintf(urlbuf, 128, urlfmt2, uid);
+		download_from_stream(urlbuf, format, apiurl);
 	}
 }
 
@@ -123,7 +139,7 @@ read_string(const char **_c)
 }
 
 int
-loadcfgnew(void)
+loadcfg(void)
 {
 	FILE* f = fopen("inoue.cfg", "r");
 	if (!f) {

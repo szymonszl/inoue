@@ -7,53 +7,6 @@
 
 #include "inoue.h"
 
-int
-loadcfg(void)
-{
-	FILE* f = fopen("inoue.cfg", "r");
-	if (!f) {
-		perror("inoue: couldnt open config file");
-		return 0;
-	}
-	char buf[512];
-	char key[32];
-	char val[256];
-	while (fgets(buf, 511, f)) {
-		if (sscanf(buf, "%32[^ \n] %256[^\n]%*c", key, val) != EOF) {
-			if (key[0] == '#')
-				continue; // ignore comments
-			else if (0 == strcmp(key, "username"))
-				config.username = strdup(val);
-			else if (0 == strcmp(key, "apiurl"))
-				config.apiurl = strdup(val);
-			else if (0 == strcmp(key, "useragent"))
-				config.useragent = strdup(val);
-			else if (0 == strcmp(key, "filenameformat"))
-				config.filenameformat = strdup(val);
-			else fprintf(stderr, "Warning: unrecognized key \"%s\" in config\n", key);
-		}
-	}
-	fclose(f);
-	if (!config.useragent) {
-		config.useragent = "Mozilla/5.0 (only pretending; Inoue/v1)";
-	}
-	if (!config.filenameformat) {
-		config.filenameformat = "%Y-%m-%d_%H-%M_%O.ttrm";
-	}
-	if (!config.username) {
-		fprintf(stderr, "No username specified!\n");
-		return 0;
-	}
-	if (!config.apiurl) {
-		config.apiurl = "https://inoue.szy.lol/api/replay/%s";
-	}
-
-	for (int i = 0; config.username[i] != 0; i++)
-		config.username[i] = tolower(config.username[i]);
-
-	return 1;
-}
-
 struct json_value_s *
 json_getpath(struct json_object_s *json, const char *path)
 {
@@ -84,6 +37,26 @@ json_getpath(struct json_object_s *json, const char *path)
 	}
 	free(pth);
 	return cur;
+}
+
+const char *
+json_getstring(struct json_object_s *json, const char *path, int empty)
+{
+	const char *ret = NULL;
+	if (!json) goto out;
+	struct json_value_s *v = json_getpath(json, path);
+	if (!v) goto out;
+	struct json_string_s *s = json_value_as_string(v);
+	if (!s) goto out;
+	ret = s->string;
+out:
+	if (ret)
+		return ret;
+	if (empty) {
+		return "";
+	} else {
+		return NULL;
+	}
 }
 
 struct json_object_s *

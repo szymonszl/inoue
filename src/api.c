@@ -57,3 +57,35 @@ resolve_username(const char *username)
 	}
 	return uid;
 }
+
+void
+download_from_stream(const char *url, const char *format, const char *apiurl)
+{
+	static buffer *b = NULL;
+	if (!b) b = buffer_new();
+	buffer_truncate(b);
+	long status;
+	if (!http_get(url, b, &status)) {
+		return;
+	}
+	if (status != 200) {
+		fprintf(stderr, "api: received error %ld from server\n", status);
+		return;
+	}
+	struct json_value_s *root = json_parse(buffer_str(b), buffer_strlen(b));
+	if (!root) {
+		fprintf(stderr, "api: invalid response from server\n");
+		return;
+	}
+	struct json_object_s *data = json_get_api_data(root);
+	if (data) {
+		struct json_value_s *rv = json_getpath(data, "records");
+		struct json_array_s *records = json_value_as_array(rv);
+		if (records) {
+			for (struct json_array_element_s *j = records->start; j != NULL; j = j->next) {
+				download_game(json_value_as_object(j->value), format, apiurl);
+			}
+		}
+	}
+	free(root);
+}

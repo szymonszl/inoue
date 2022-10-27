@@ -3,21 +3,22 @@
 
 #include <string.h>
 
-extern struct _cfg {
-	char *username;
-	char *apiurl;
-	char *useragent;
-	char *filenameformat;
-} config;
 int loadcfg(void);
-int loadcfgnew(void);
 
 const char *resolve_username(const char *);
 
 struct json_value_s *json_getpath(struct json_object_s *, const char *);
+const char *json_getstring(struct json_object_s *, const char *, int);
 struct json_object_s *json_get_api_data(struct json_value_s *);
 int parse_ts(struct tm *, const char *);
 int endswith(const char *, const char *);
+
+void do_40l(const char *, const char *, const char *);
+void do_blitz(const char *, const char *, const char *);
+void do_league(const char *, const char *, const char *);
+
+void download_from_stream(const char *, const char *, const char *);
+void download_game(struct json_object_s *, const char *, const char *);
 
 typedef struct buffer buffer;
 buffer *buffer_new(void);
