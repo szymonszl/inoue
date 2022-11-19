@@ -157,6 +157,9 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 	}
 
 	logI("Downloading %s -> %s... ", replayid, filename);
+	if (!ensure_dir(filename)) {
+		logE("failed to create/find folder for file!");
+	}
 	FILE *f = fopen(filename, "wb");
 	if (!f) {
 		logS("couldnt open output file");

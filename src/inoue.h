@@ -33,6 +33,7 @@ double json_getdouble(struct json_object_s *, const char *, double);
 struct json_object_s *json_get_api_data(struct json_value_s *);
 int parse_ts(struct tm *, const char *);
 int endswith(const char *, const char *);
+int ensure_dir(const char *);
 
 void download_from_stream(const char *, const char *, const char *);
 void download_game(struct json_object_s *, const char *, const char *);

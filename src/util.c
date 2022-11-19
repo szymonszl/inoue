@@ -3,6 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
+#include <errno.h>
+#include "winunistd.h"
 #include "json.h"
 
 #include "inoue.h"
@@ -107,4 +109,33 @@ int
 endswith(const char *str, const char *suf)
 {
 	return strcmp(str+strlen(str)-strlen(suf), suf) == 0;
+}
+
+int
+ensure_dir(const char *path)
+{ // note: creates a directory FOR path not AT path, ie creates "a" for "a/b"
+	char *dir = strdup(path);
+	char *slash = strrchr(dir, '/');
+	if (!slash) { // no dirs to create
+		free(dir);
+		return 1;
+	}
+	*slash = '\0';
+	int r = mkdir(dir, 0777);
+	if (r == 0) {
+		free(dir);
+		return 1;
+	}
+	if (errno == EEXIST) {
+		free(dir);
+		return 1;
+	}
+	if (errno == ENOENT) {
+		r = ensure_dir(dir);
+		free(dir);
+		return r;
+	}
+	logS("failed to create directory for %s", path);
+	free(dir);
+	return 0;
 }

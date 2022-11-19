@@ -83,6 +83,9 @@ The multiplayer examples assume a game played by SZY against OSK on Mon Sep 14 0
 **Invalid sequences will cause an error**, so if you want to put a single percent sign in your filename please use `%%`.
 Sequences not related to the type of game (like opponent name in singleplayer) will be replaced with nothing.
 
+The filename pattern can also contain forward slashes `/` to mark directories. If the target directory does not exist, it will be automatically created.
+For example, `%Y-%m/%Y-%m-%d %H-%M vs %T.ttrm` will categorize TL replays by their year and month, creating folders named like `2020-05`.
+
 If a pattern is not specified with `saveas`, the following defaults are used:  
 40L: `%Y-%m-%d_%H-%M_%T.ttr`  
 Blitz: `%Y-%m-%d_%H-%M_%b.ttr`  
