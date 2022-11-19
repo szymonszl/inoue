@@ -18,7 +18,7 @@ As long as you run Inoue at least once every 10 games, all your replays with be 
 ## Guide for Windows
 
 1. Download and unpack the latest build from [Releases](https://github.com/szymonszl/inoue/releases).
-2. The unpacked folder will contain a file called `inoue.cfg`. Please fill it in according to the **Configuration** section.
+2. The unpacked folder will contain a file called `inoue.txt`. Please fill it in according to the **Configuration** section.
 3. Run `inoue.bat`.
 4. Your replays should be downloaded! Please try viewing them to make sure that the download worked.
 5. Run `inoue.bat` every time you have played some more games and want to save them.
@@ -28,7 +28,7 @@ Note: If you are a developer and want to compile the program yourself, please lo
 ## Guide for Linux
 
 1. Create the directory you want to save your replays in.
-2. Create a file called `inoue.cfg` in the directory. See the **Configuration** section for more information.
+2. Create a file called `inoue.cfg` in the directory, and fill it in. See the **Configuration** section for more information.
 3. Install Inoue's dependencies - a C compiler and curl's headers. On Ubuntu that can be installed as `sudo apt-get install build-essential libcurl4-openssl-dev`. On Archlikes try `sudo pacman -S --needed base-devel curl`.
 4. Compile the program. Builds are not available *yet*. Just clone/download the repo and run `make`. You will get a binary as `build/inoue`.
 5. Either copy the executable to the directory and call it as `cd /path/to/folder; ./inoue`, or call it as `/path/to/build/inoue /path/to/folder`. You can also install the executable globally and call it with the path, but doing so with `make install` is not supported yet.
@@ -37,8 +37,8 @@ Note: If you are a developer and want to compile the program yourself, please lo
 
 ## Configuration
 
-Inoue is controlled by a simple plaintext file called `inoue.cfg`. The file contains tasks (requests to download a set of replays),
-which are then executed. Every task needs to include the user and the kind of replay to be downloaded, and optionally
+On start, Inoue looks for a file named `inoue.cfg` or `inoue.txt`. The file should contain tasks (requests to download a set of replays),
+which are then executed. Every task needs to include the target user and the kind of replay to be downloaded, and optionally
 a description how the file should be named.
 
 Example configuration file:
@@ -83,7 +83,7 @@ The multiplayer examples assume a game played by SZY against OSK on Mon Sep 14 0
 **Invalid sequences will cause an error**, so if you want to put a single percent sign in your filename please use `%%`.
 Sequences not related to the type of game (like opponent name in singleplayer) will be replaced with nothing.
 
-If a pattern is not specified with `saveas`, the following patterns are used:  
+If a pattern is not specified with `saveas`, the following defaults are used:  
 40L: `%Y-%m-%d_%H-%M_%T.ttr`  
 Blitz: `%Y-%m-%d_%H-%M_%b.ttr`  
 TL: `%Y-%m-%d_%H-%M_%O.ttrm`

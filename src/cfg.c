@@ -141,7 +141,10 @@ loadcfg(void)
 {
 	FILE* f = fopen("inoue.cfg", "r");
 	if (!f) {
-		logS("couldnt open config file");
+		f = fopen("inoue.txt", "r");
+	}
+	if (!f) {
+		logS("couldn't open config file");
 		return 0;
 	}
 	buffer *b = buffer_new();
