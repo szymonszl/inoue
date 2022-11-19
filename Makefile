@@ -1,4 +1,5 @@
-OBJS = build/inoue.o build/buffer.o build/util.o build/http.o build/cfg.o build/api.o build/game.o
+OBJS = build/inoue.o build/buffer.o build/util.o build/http.o build/cfg.o \
+	build/api.o build/game.o build/log.o
 DEPS = src/inoue.h src/json.h src/winunistd.h
 CFLAGS = -Wall -g `curl-config --cflags`
 LDFLAGS = `curl-config --libs`

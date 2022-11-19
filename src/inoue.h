@@ -5,6 +5,24 @@
 #include <time.h>
 struct json_object_s; // silence a warning
 
+enum log_level {
+	LOG_INFO,
+	LOG_WARN,
+	LOG_ERR,
+};
+extern enum log_level log_maxseen;
+#ifdef __GNUC__
+#define LOGFMT(__x, __y) __attribute__ ((format (printf, __x, __y)))
+#else
+#define LOGFMT(__x, __y)
+#endif
+void log_(enum log_level, const char *, ...) LOGFMT(2, 3);
+void logS(const char *, ...) LOGFMT(1, 2);
+#undef LOGFMT
+#define logI(...) log_(LOG_INFO, __VA_ARGS__)
+#define logW(...) log_(LOG_WARN, __VA_ARGS__)
+#define logE(...) log_(LOG_ERR, __VA_ARGS__)
+
 int loadcfg(void);
 
 const char *resolve_username(const char *);

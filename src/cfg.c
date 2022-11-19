@@ -17,36 +17,36 @@ dispatch(char *user, char *format, enum tasktype type)
 {
 	const char *uid = resolve_username(user);
 	if (!uid) {
-		fprintf(stderr, "failed to resolve user %s!\n", user);
+		logE("failed to resolve user %s!", user);
 		return;
 	}
 	const char *urlfmt1, *urlfmt2 = NULL;
 	switch (type) {
 		case TSK_NONE:
-			fprintf(stderr, "config: no task type selected!\n");
+			logE("config: no task type selected!");
 			return;
 		case TSK_40L:
 			if (!format) format = "%Y-%m-%d_%H-%M_%T.ttr";
 			if (!endswith(format, ".ttr"))
-				fprintf(stderr, "WARN: wrong or no extension for singleplayer (expected .ttr)\n");
+				logW("wrong or no extension for singleplayer (expected .ttr)");
 			urlfmt1 = "https://ch.tetr.io/api/streams/40l_userrecent_%s";
 			urlfmt2 = "https://ch.tetr.io/api/streams/40l_userbest_%s";
-			printf("downloading 40L from %s...\n", user);
+			logI("downloading 40L from %s...", user);
 			break;
 		case TSK_BLITZ:
 			if (!format) format = "%Y-%m-%d_%H-%M_%b.ttr";
 			if (!endswith(format, ".ttr"))
-				fprintf(stderr, "WARN: wrong or no extension for singleplayer (expected .ttr)\n");
+				logW("wrong or no extension for singleplayer (expected .ttr)");
 			urlfmt1 = "https://ch.tetr.io/api/streams/blitz_userrecent_%s";
 			urlfmt2 = "https://ch.tetr.io/api/streams/blitz_userbest_%s";
-			printf("downloading Blitz from %s...\n", user);
+			logI("downloading Blitz from %s...", user);
 			break;
 		case TSK_LEAGUE:
 			if (!format) format = "%Y-%m-%d_%H-%M_%O.ttrm";
 			if (!endswith(format, ".ttrm"))
-				fprintf(stderr, "WARN: wrong or no extension for multiplayer (expected .ttrm)\n");
+				logW("wrong or no extension for multiplayer (expected .ttrm)");
 			urlfmt1 = "https://ch.tetr.io/api/streams/league_userrecent_%s";
-			printf("downloading Tetra League from %s...\n", user);
+			logI("downloading Tetra League from %s...", user);
 			break;
 	}
 	char urlbuf[128];
@@ -91,7 +91,7 @@ read_string(const char **_c)
 	const char *c = *_c;
 	while (isspace(*c) && *c) c++;
 	if (!c) {
-		fprintf(stderr, "config: expected value\n");
+		logE("config: expected value");
 		return NULL;
 	}
 	char buf[1024];
@@ -101,7 +101,7 @@ read_string(const char **_c)
 		for (;;) {
 			char ch = *c;
 			if (!ch) {
-				fprintf(stderr, "config: no matching quote while reading value\n");
+				logE("config: no matching quote while reading value");
 				return NULL;
 			}
 			if (ch == '\\' && *(c+1)) {
@@ -126,7 +126,7 @@ read_string(const char **_c)
 					*_c = c;
 					return strdup(buf);
 				} else {
-					fprintf(stderr, "config: empty value?\n");
+					logE("config: empty value?");
 					return NULL;
 				}
 			}
@@ -141,7 +141,7 @@ loadcfg(void)
 {
 	FILE* f = fopen("inoue.cfg", "r");
 	if (!f) {
-		perror("inoue: couldnt open config file");
+		logS("couldnt open config file");
 		return 0;
 	}
 	buffer *b = buffer_new();
@@ -171,7 +171,7 @@ loadcfg(void)
 		const char *next = NULL;
 		enum cfgword word = read_word(c, &next);
 		if (word == CFG_NONE) {
-			fprintf(stderr, "config: unrecognized word at '%.10s'...\n", c);
+			logE("config: unrecognized word at '%.10s'...", c);
 			goto exit;
 		}
 		c = next;
@@ -181,8 +181,8 @@ loadcfg(void)
 	__var = read_string(&c); \
 	if (!__var) goto exit;
 
-#define CHECK_TYPE() if (type) { fprintf(stderr, type_err); goto exit; }
-		const char *type_err = "config: you can only download one type of replay at the same time\n";
+		const char *type_err = "config: you can only download one type of replay at the same time";
+#define CHECK_TYPE() if (type) { logE(type_err); goto exit; }
 
 		switch (word) {
 			case CFG_NONE:

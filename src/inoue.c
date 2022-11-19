@@ -13,22 +13,21 @@ int
 main(int argc, char **argv)
 {
 	printf("INOUE v0.4\n");
-	int exitcode = EXIT_FAILURE;
 
 	if (argc == 2) {
 		if (chdir(argv[1]) < 0) {
-			perror("inoue: couldn't change directory");
+			logS("couldn't change directory to %s", argv[1]);
 			return EXIT_FAILURE;
 		}
 	}
 
 	if (!http_init()) {
-		fprintf(stderr, "failed to start HTTP library, exiting!\n");
+		logE("failed to start HTTP library, exiting!");
 		return EXIT_FAILURE;
 	}
-	exitcode = loadcfg();
+	loadcfg();
 
 	http_deinit();
 
-	return exitcode;
+	return log_maxseen > LOG_INFO;
 }

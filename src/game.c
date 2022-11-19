@@ -42,7 +42,7 @@ generate_filename(struct json_object_s *game, const char *format, const char *re
 	const char *rawts = json_getstring(game, "ts", 0);
 	if (rawts) {
 		if (!parse_ts(&ts, rawts)) {
-			fprintf(stderr, "failed to parse game timestamp: %s\n", rawts);
+			logE("failed to parse game timestamp: %s", rawts);
 			return NULL;
 		}
 	}
@@ -121,7 +121,7 @@ generate_filename(struct json_object_s *game, const char *format, const char *re
 				buffer_appendchar(buf, '%');
 				break;
 			default:
-				fprintf(stderr, "invalid sequence '%%%c' in format\n", format[i]);
+				logE("invalid sequence '%%%c' in format", format[i]);
 				return NULL;
 			}
 		} else {
@@ -147,20 +147,19 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 
 	const char *filename = generate_filename(game, format, replayid, user);
 	if (!filename) {
-		fprintf(stderr, "failed to generate filename for %s\n", replayid);
+		logE("failed to generate filename for %s", replayid);
 		return;
 	}
 
 	if(access(filename, F_OK) != -1 ) {
-		printf("Game %s already saved, skipping...\n", replayid);
+		logI("Game %s already saved, skipping...", replayid);
 		return;
 	}
 
-	printf("Downloading %s -> %s... ", replayid, filename);
-	fflush(stdout);
+	logI("Downloading %s -> %s... ", replayid, filename);
 	FILE *f = fopen(filename, "wb");
 	if (!f) {
-		perror("couldnt open output file");
+		logS("couldnt open output file");
 		return;
 	}
 	char urlbuf[128];
@@ -172,17 +171,16 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 		return;
 	}
 	if (status != 200) {
-		fprintf(stderr, "received error %ld from server: %s\n", status, buffer_str(b));
+		logE("received error %ld from server: %s", status, buffer_str(b));
 		fclose(f);
 		unlink(filename);
 		return;
 	}
 	if (!buffer_save(b, f)) {
-		fprintf(stderr, "Saving failed!\n");
+		logE("Saving failed!");
 		fclose(f);
 		unlink(filename);
 		return;
 	}
 	fclose(f);
-	printf("OK!\n");
 }

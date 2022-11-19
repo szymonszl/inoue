@@ -14,7 +14,7 @@ recv_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 int
 http_init(void)
 {
-	printf("curl ver: %s\n", curl_version());
+	logI("curl ver: %s", curl_version());
 	curl_global_init(CURL_GLOBAL_ALL);
 	hnd = curl_easy_init();
 	if (!hnd) return 0;
@@ -37,7 +37,7 @@ http_get(const char *url, buffer *b, long *status)
 	curl_easy_setopt(hnd, CURLOPT_URL, url);
 	CURLcode ret = curl_easy_perform(hnd);
 	if (ret != CURLE_OK) {
-		fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(ret));
+		logE("network request failed: %s", curl_easy_strerror(ret));
 		return 0;
 	}
 	if (status)

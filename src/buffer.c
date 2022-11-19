@@ -108,7 +108,7 @@ buffer_save(buffer *b, FILE *f)
 	if (written == buffer_strlen(b)) {
 		return 1;
 	}
-	perror("failed to save");
+	logS("failed to save");
 	return 0;
 }
 

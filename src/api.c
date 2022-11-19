@@ -29,7 +29,7 @@ _resolve_username(const char *username)
 	}
 	free(root);
 	if (!userid) {
-		fprintf(stderr, "failed to resolve username '%s'\n", username);
+		logE("failed to resolve username '%s'", username);
 	}
 	return userid;
 }
@@ -69,12 +69,12 @@ download_from_stream(const char *url, const char *format, const char *user)
 		return;
 	}
 	if (status != 200) {
-		fprintf(stderr, "api: received error %ld from server\n", status);
+		logE("api: received error %ld from server", status);
 		return;
 	}
 	struct json_value_s *root = json_parse(buffer_str(b), buffer_strlen(b));
 	if (!root) {
-		fprintf(stderr, "api: invalid response from server\n");
+		logE("api: invalid response from server");
 		return;
 	}
 	struct json_object_s *data = json_get_api_data(root);
