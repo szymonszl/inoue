@@ -88,6 +88,15 @@ If a pattern is not specified with `saveas`, the following defaults are used:
 Blitz: `%Y-%m-%d_%H-%M_%b.ttr`  
 TL: `%Y-%m-%d_%H-%M_%O.ttrm`
 
+## Replay API access
+
+Currently replays are only available on TETR.IO through the main game API, which is illegal or at least very rude to use directly.
+Earlier versions of Inoue did so, but that required passing it a token, and stopped working with an update which added new anticheat mitigations.
+As such, I have set up an API at [inoue.szy.lol/api](https://inoue.szy.lol/api/), which uses a [bot account](https://ch.tetr.io/u/inoue_bot)
+at the backend to download and forward replays. Inoue now uses this API.
+
+If you're working on a project which requires TETR.IO replays, feel free to use the API! Visit the URL above for the documentation.
+
 ## Acknowledgements
 
 First of all, big thanks to osk for such an excellent game!
