@@ -11,9 +11,11 @@
 #define access _access
 #define chdir _chdir
 #define unlink _unlink
+#define mkdir(__p, __ignored) _mkdir(__p)
 
 #else
 #include <unistd.h>
+#include <sys/stat.h>
 #endif
 
 #endif
