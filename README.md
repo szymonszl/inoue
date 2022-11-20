@@ -19,11 +19,11 @@ As long as you run Inoue at least once every 10 games, all your replays with be 
 
 1. Download and unpack the latest build from [Releases](https://github.com/szymonszl/inoue/releases).
 2. The unpacked folder will contain a file called `inoue.txt`. Please fill it in according to the **Configuration** section.
-3. Run `inoue.bat`.
+3. Run `runme.bat`.
 4. Your replays should be downloaded! Please try viewing them to make sure that the download worked.
-5. Run `inoue.bat` every time you have played some more games and want to save them.
+5. Run `runme.bat` every time you have played some more games and want to save them.
 
-Note: If you are a developer and want to compile the program yourself, please look into [Building on Windows](building_on_windows.md).
+To build, get MSYS2, run `make -f Makefile.win32 release`, and look for `build/inoue.zip`.
 
 ## Guide for Linux
 
