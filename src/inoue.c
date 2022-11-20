@@ -48,11 +48,14 @@ main(int argc, char **argv)
 				case 'v':
 					puts("Inoue " INOUE_VER);
 					return EXIT_SUCCESS;
+				case 'h':
+					fprintf(stderr, "Usage: %s [-h] [-q] [[-c <command> | <path>]...]\n", argv[0]);
+					return EXIT_SUCCESS;
 				case 'c':
 					i++; // ignore for now
 					break;
 				default:
-					logE("unknown parameter: -%c", argv[i][1]);
+					logE("unknown parameter -%c, try -h", argv[i][1]);
 					return EXIT_FAILURE;
 			}
 		}
@@ -71,6 +74,7 @@ main(int argc, char **argv)
 			switch (argv[i][1]) {
 				case 'q':
 				case 'v':
+				case 'h':
 					break;
 				case 'c':
 					i++;
