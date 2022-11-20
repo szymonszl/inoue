@@ -14,6 +14,7 @@
 #endif
 
 int opt_quiet = 0; // extern definition
+int total_dl = 0; // extern definition
 
 static void
 do_dir(const char *dir)
@@ -101,9 +102,12 @@ main(int argc, char **argv)
 
 	http_deinit();
 
-	if (log_maxseen > LOG_INFO && !opt_quiet) {
-		// no risk of errors getting spammed away in quiet mode
-		logE("Errors have occured.");
+	if (!opt_quiet) {
+		logI("Downloaded %d replays total.", total_dl);
+		if (log_maxseen > LOG_INFO) {
+			// safe to put here, no risk of errors getting spammed away in quiet mode
+			logE("Errors have occured.");
+		}
 	}
 
 #ifdef _WIN32

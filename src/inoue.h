@@ -24,6 +24,7 @@ void logS(const char *, ...) LOGFMT(1, 2);
 #define logW(...) log_(LOG_WARN, __VA_ARGS__)
 #define logE(...) log_(LOG_ERR, __VA_ARGS__)
 extern int opt_quiet;
+extern int total_dl;
 
 void loadcfg(const char *);
 

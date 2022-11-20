@@ -185,5 +185,6 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 		unlink(filename);
 		return;
 	}
+	total_dl++;
 	fclose(f);
 }
