@@ -77,8 +77,13 @@ read_word(const char *c, const char **n)
 	for (int i = 0; words[i] != NULL; i++) {
 		int l = strlen(words[i]);
 		if (memcmp(c, words[i], l) == 0 && (isspace(c[l]) || c[l] == '\0')) {
-			if (n)
-				*n = &c[l+1];
+			if (n) {
+				if (c[l]) {
+					*n = &c[l+1];
+				} else { // immediate null byte after
+					*n = &c[l];
+				}
+			}
 			return i+1;
 		}
 	}
@@ -137,9 +142,8 @@ read_string(const char **_c)
 }
 
 void
-loadcfg(buffer *b)
+loadcfg(const char *c)
 {
-	const char *c = buffer_str(b);
 	char *user = NULL;
 	char *format = NULL;
 	enum tasktype type = TSK_NONE;
@@ -205,5 +209,9 @@ loadcfg(buffer *b)
 				break;
 		}
 	}
-	dispatch(user, format, type);
+	if (user) {
+		dispatch(user, format, type);
+	} else {
+		logE("config: no user selected!");
+	}
 }

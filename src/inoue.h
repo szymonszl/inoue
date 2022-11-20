@@ -19,12 +19,13 @@ extern enum log_level log_maxseen;
 #endif
 void log_(enum log_level, const char *, ...) LOGFMT(2, 3);
 void logS(const char *, ...) LOGFMT(1, 2);
+void log_quiet(void);
 #undef LOGFMT
 #define logI(...) log_(LOG_INFO, __VA_ARGS__)
 #define logW(...) log_(LOG_WARN, __VA_ARGS__)
 #define logE(...) log_(LOG_ERR, __VA_ARGS__)
 
-void loadcfg(buffer *);
+void loadcfg(const char *);
 
 const char *resolve_username(const char *);
 
