@@ -13,6 +13,8 @@
 #define INOUE_VER "?"
 #endif
 
+int opt_quiet = 0; // extern definition
+
 static void
 do_dir(const char *dir)
 {
@@ -43,7 +45,7 @@ main(int argc, char **argv)
 		if (argv[i][0] == '-' && argv[i][2] == '\0') {
 			switch (argv[i][1]) {
 				case 'q':
-					log_quiet();
+					opt_quiet = 1;
 					break;
 				case 'v':
 					puts("Inoue " INOUE_VER);
@@ -99,10 +101,16 @@ main(int argc, char **argv)
 
 	http_deinit();
 
-	if (log_maxseen > LOG_INFO) {
+	if (log_maxseen > LOG_INFO && !opt_quiet) {
+		// no risk of errors getting spammed away in quiet mode
 		logE("Errors have occured.");
 		return EXIT_FAILURE;
 	}
+
+#ifdef _WIN32
+	// for console window business on windowed platform, pass -q to disable
+	if (!opt_quiet) { puts("Press any key to exit..."); getch(); }
+#endif
 
 	return EXIT_SUCCESS;
 }

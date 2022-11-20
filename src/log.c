@@ -5,13 +5,14 @@
 #include "inoue.h"
 
 enum log_level log_maxseen = LOG_INFO; // extern definition
-static int quiet = 0;
 
 void
 log_(enum log_level l, const char *fmt, ...)
 {
 	if (l > log_maxseen)
 		log_maxseen = l;
+	if (opt_quiet && l < LOG_ERR)
+		return;
 	fprintf(stderr, "[%c] ", " WE"[l]);
 	va_list ap;
 	va_start(ap, fmt);
@@ -32,5 +33,3 @@ logS(const char *fmt, ...)
 	va_end(ap);
 	fprintf(stderr, ": %s\n", strerror(e));
 }
-
-void log_quiet(void) { quiet = 1; }

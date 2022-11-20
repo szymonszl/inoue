@@ -5,6 +5,7 @@
 
 #include <direct.h>
 #include <io.h>
+#include <conio.h>
 #define F_OK 0
 #define strdup _strdup
 #define strtok_r strtok_s
