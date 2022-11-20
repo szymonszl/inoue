@@ -133,7 +133,9 @@ ensure_dir(const char *path)
 		return 1;
 	}
 	if (errno == ENOENT) {
-		r = ensure_dir(dir);
+		r = ensure_dir(dir); // try lower dir
+		if (r)
+			r = ensure_dir(path); // retry
 		free(dir);
 		return r;
 	}
