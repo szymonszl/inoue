@@ -22,6 +22,7 @@ log_(enum log_level l, const char *fmt, ...)
 void
 logS(const char *fmt, ...)
 {
+	log_maxseen = LOG_ERR;
 	int e = errno;
 	fprintf(stderr, "[E] ");
 	va_list ap;

@@ -136,26 +136,13 @@ read_string(const char **_c)
 	}
 }
 
-int
-loadcfg(void)
+void
+loadcfg(buffer *b)
 {
-	FILE* f = fopen("inoue.cfg", "r");
-	if (!f) {
-		f = fopen("inoue.txt", "r");
-	}
-	if (!f) {
-		logS("couldn't open config file");
-		return 0;
-	}
-	buffer *b = buffer_new();
-	buffer_load(b, f);
-	buffer_appendchar(b, 0);
-	fclose(f);
 	const char *c = buffer_str(b);
 	char *user = NULL;
 	char *format = NULL;
 	enum tasktype type = TSK_NONE;
-	int err = 1;
 	for (;;) {
 		while (isspace(*c) && *c) c++;
 		if (*c == '#') {
@@ -175,17 +162,17 @@ loadcfg(void)
 		enum cfgword word = read_word(c, &next);
 		if (word == CFG_NONE) {
 			logE("config: unrecognized word at '%.10s'...", c);
-			goto exit;
+			return;
 		}
 		c = next;
 
 #define READ_VALUE(__var) \
 	if (__var) free(__var); \
 	__var = read_string(&c); \
-	if (!__var) goto exit;
+	if (!__var) return;
 
 		const char *type_err = "config: you can only download one type of replay at the same time";
-#define CHECK_TYPE() if (type) { logE(type_err); goto exit; }
+#define CHECK_TYPE() if (type) { logE(type_err); return; }
 
 		switch (word) {
 			case CFG_NONE:
@@ -219,8 +206,4 @@ loadcfg(void)
 		}
 	}
 	dispatch(user, format, type);
-	err = 0;
-exit:
-	buffer_free(b);
-	return err;
 }

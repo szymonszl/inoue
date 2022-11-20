@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <time.h>
+typedef struct buffer buffer;
 struct json_object_s; // silence a warning
 
 enum log_level {
@@ -23,7 +24,7 @@ void logS(const char *, ...) LOGFMT(1, 2);
 #define logW(...) log_(LOG_WARN, __VA_ARGS__)
 #define logE(...) log_(LOG_ERR, __VA_ARGS__)
 
-int loadcfg(void);
+void loadcfg(buffer *);
 
 const char *resolve_username(const char *);
 
@@ -38,7 +39,6 @@ int ensure_dir(const char *);
 void download_from_stream(const char *, const char *, const char *);
 void download_game(struct json_object_s *, const char *, const char *);
 
-typedef struct buffer buffer;
 buffer *buffer_new(void);
 void buffer_free(buffer *b);
 size_t buffer_appendbytes(buffer *b, const char *data, size_t length);
