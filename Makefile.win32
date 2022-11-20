@@ -1,7 +1,9 @@
+VERSION = $(shell git describe --always --tags)
+
 OBJS = build/inoue.o build/buffer.o build/util.o build/cfg.o \
 	build/api.o build/game.o build/log.o build/http_wininet.o
 DEPS = src/inoue.h src/json.h src/winunistd.h
-CFLAGS = -Wall
+CFLAGS = -Wall -DINOUE_VER=\"$(VERSION)\"
 LDFLAGS = -s -static-libgcc -lwininet
 
 all: build/inoue.exe
@@ -26,10 +28,6 @@ release: build/inoue.exe
 	cp build/inoue.exe build/inoue/
 	cp README.md build/inoue/
 	cp inoue.cfg.example build/inoue/inoue.txt
-	echo '@title Inoue' >build/inoue/runme.bat
-	@echo '@"%~dp0/inoue.exe" %~dp0' >>build/inoue/runme.bat
-	@echo '@pause' >>build/inoue/runme.bat
-	@unix2dos build/inoue/runme.bat
 	cd build; zip -r inoue.zip inoue
 
 

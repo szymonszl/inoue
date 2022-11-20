@@ -104,7 +104,6 @@ main(int argc, char **argv)
 	if (log_maxseen > LOG_INFO && !opt_quiet) {
 		// no risk of errors getting spammed away in quiet mode
 		logE("Errors have occured.");
-		return EXIT_FAILURE;
 	}
 
 #ifdef _WIN32
@@ -112,5 +111,5 @@ main(int argc, char **argv)
 	if (!opt_quiet) { puts("Press any key to exit..."); getch(); }
 #endif
 
-	return EXIT_SUCCESS;
+	return (log_maxseen > LOG_INFO) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
