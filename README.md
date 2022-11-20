@@ -104,4 +104,5 @@ If you're working on a project which requires TETR.IO replays, feel free to use 
 
 First of all, big thanks to osk for such an excellent game!
 
-This program uses the excellent [curl](https://curl.se/) library to connect to the servers, and the great [json.h](https://github.com/sheredom/json.h) header-only library to parse JSON.
+This program uses the excellent [curl](https://curl.se/) library to connect to the servers on Linux,
+and the great [json.h](https://github.com/sheredom/json.h) header-only library to parse JSON.

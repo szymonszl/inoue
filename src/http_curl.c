@@ -18,7 +18,7 @@ http_init(void)
 	curl_global_init(CURL_GLOBAL_ALL);
 	hnd = curl_easy_init();
 	if (!hnd) return 0;
-	curl_easy_setopt(hnd, CURLOPT_USERAGENT, "Mozilla/5.0 (only pretending; Inoue/v1)");
+	curl_easy_setopt(hnd, CURLOPT_USERAGENT, "Mozilla/5.0 (only pretending; Inoue/v1; curl)");
 	curl_easy_setopt(hnd, CURLOPT_WRITEFUNCTION, recv_callback);
 	// curl_easy_setopt(hnd, CURLOPT_FAILONERROR, 1);
 	return 1;
