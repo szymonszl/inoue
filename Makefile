@@ -1,7 +1,9 @@
+VERSION = $(shell git describe --always --tags)
+
 OBJS = build/inoue.o build/buffer.o build/util.o build/cfg.o \
 	build/api.o build/game.o build/log.o build/http_curl.o
 DEPS = src/inoue.h src/json.h src/winunistd.h
-CFLAGS = -Wall -g `curl-config --cflags`
+CFLAGS = -Wall -g `curl-config --cflags` -DINOUE_VER=\"$(VERSION)\"
 LDFLAGS = `curl-config --libs`
 
 all: build/inoue
