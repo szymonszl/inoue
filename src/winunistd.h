@@ -11,6 +11,7 @@
 #define strtok_r strtok_s
 #define access _access
 #define chdir _chdir
+#define getcwd _getcwd
 #define unlink _unlink
 #define mkdir(__p, __ignored) _mkdir(__p)
 

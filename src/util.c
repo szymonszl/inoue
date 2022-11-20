@@ -141,3 +141,23 @@ ensure_dir(const char *path)
 	free(dir);
 	return 0;
 }
+
+char *
+getcwd_(void)
+{
+	int buflen = 256;
+	char *buf = NULL;
+	while (!buf) {
+		buf = malloc(buflen);
+		if (getcwd(buf, buflen) == NULL) {
+			if (errno == ENOMEM) {
+				free(buf);
+				buf = NULL;
+				buflen <<= 1;
+			} else {
+				logS("failed to get working directory");
+			}
+		}
+	}
+	return buf;
+}

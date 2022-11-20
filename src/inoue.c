@@ -19,6 +19,9 @@ int total_dl = 0; // extern definition
 static void
 do_dir(const char *dir)
 {
+	char *cwd;
+	if ((cwd = getcwd_()) == NULL)
+		return;
 	if (dir && chdir(dir) < 0) {
 		logS("couldn't change directory to %s", dir);
 		return;
@@ -28,7 +31,7 @@ do_dir(const char *dir)
 		f = fopen("inoue.txt", "r");
 	}
 	if (!f) {
-		logS("couldn't open config file at %s", dir);
+		logS("couldn't open config file at %s/%s", cwd, dir);
 		return;
 	}
 	buffer *b = buffer_new();
@@ -37,6 +40,7 @@ do_dir(const char *dir)
 	fclose(f);
 	loadcfg(buffer_str(b));
 	buffer_free(b);
+	chdir(cwd);
 }
 
 int
