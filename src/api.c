@@ -28,9 +28,6 @@ _resolve_username(const char *username)
 		}
 	}
 	free(root);
-	if (!userid) {
-		logE("failed to resolve username '%s'", username);
-	}
 	return userid;
 }
 
@@ -70,7 +67,6 @@ download_from_stream(const char *url, const char *format, const char *user)
 	}
 	if (status != 200) {
 		logE("api: received error %ld from server", status);
-		return;
 	}
 	struct json_value_s *root = json_parse(buffer_str(b), buffer_strlen(b));
 	if (!root) {

@@ -80,8 +80,10 @@ json_get_api_data(struct json_value_s *root)
 		return NULL;
 	for (struct json_object_element_s *i = root_obj->start; i != NULL; i = i->next) {
 		if (0 == strcmp(i->name->string, "success")) {
-			if (!json_value_is_true(i->value))
+			if (!json_value_is_true(i->value)) {
+				logE("error from server: %s", json_getstring(root_obj, "error", 1));
 				return NULL;
+			}
 		} else if (0 == strcmp(i->name->string, "data")) {
 			return json_value_as_object(i->value);
 		}

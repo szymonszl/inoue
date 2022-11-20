@@ -27,7 +27,14 @@ main(int argc, char **argv)
 	}
 	loadcfg();
 
+	logI("Done!");
+
 	http_deinit();
 
-	return log_maxseen > LOG_INFO;
+	if (log_maxseen > LOG_INFO) {
+		logE("Errors have occured.");
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
 }
