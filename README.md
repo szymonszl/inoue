@@ -15,31 +15,31 @@ As long as you run Inoue at least once every 10 games, all your replays with be 
 - fancy filenames
 - what more could one need?
 
-## Guide for Windows
+## Quick guide for Windows
 
 1. Download and unpack the latest build from [Releases](https://github.com/szymonszl/inoue/releases).
 2. The unpacked folder will contain a file called `inoue.txt`. Please fill it in according to the **Configuration** section.
-3. Run `runme.bat`.
+3. Run `inoue.exe`.
 4. Your replays should be downloaded! Please try viewing them to make sure that the download worked.
-5. Run `runme.bat` every time you have played some more games and want to save them.
+5. Run `inoue.exe` every time you have played some more games and want to save them.
 
 To build, get MSYS2, run `make -f Makefile.win32 release`, and look for `build/inoue.zip`.
 
-## Guide for Linux
+## Quick guide for Linux
 
 1. Create the directory you want to save your replays in.
 2. Create a file called `inoue.cfg` in the directory, and fill it in. See the **Configuration** section for more information.
 3. Install Inoue's dependencies - a C compiler and curl's headers. On Ubuntu that can be installed as `sudo apt-get install build-essential libcurl4-openssl-dev`. On Archlikes try `sudo pacman -S --needed base-devel curl`.
-4. Compile the program. Builds are not available *yet*. Just clone/download the repo and run `make`. You will get a binary as `build/inoue`.
-5. Either copy the executable to the directory and call it as `cd /path/to/folder; ./inoue`, or call it as `/path/to/build/inoue /path/to/folder`. You can also install the executable globally and call it with the path, but doing so with `make install` is not supported yet.
+4. Compile the program. Just `git clone` the repo and run `make`. You will get a binary as `build/inoue`.
+5. Either copy the executable to the directory and call it as `cd /path/to/folder; ./inoue`, or call it as `/path/to/build/inoue /path/to/folder`, or install to PATH and use either of the above.
 6. Your replays should be downloaded! Please try viewing them to make sure that the download worked.
 7. Run `inoue` every time you have played some more games and want to save them.
 
 ## Configuration
 
-On start, Inoue looks for a file named `inoue.cfg` or `inoue.txt`. The file should contain tasks (requests to download a set of replays),
-which are then executed. Every task needs to include the target user and the kind of replay to be downloaded, and optionally
-a description how the file should be named.
+A configuration file contains tasks (requests to download a set of replays), which are then executed by Inoue.
+Every task needs to include the target user and the kind of replay to be downloaded, and optionally a description
+how the file should be named.
 
 Example configuration file:
 ```
@@ -76,7 +76,7 @@ Filename formatting patterns (passed to `saveas`) can contain percent-letter seq
 | `%H`     | the hour of the game                                                      | always       | `19`                       |
 | `%M`     | the minute of the game                                                    | always       | `37`                       |
 | `%S`     | the second of the game                                                    | always       | `13`                       |
-| `%s`     | the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time) of the game | always       | `1600112233`               |
+| `%s`     | the [Unix timestamp](https://en.wikipedia.org/wiki/Unix_time) of the game | not on Windows | `1600112233`             |
 | `%%`     | a single percent character                                                | always       | `%`                        |
 
 The multiplayer examples assume a game played by SZY against OSK on Mon Sep 14 07:37:13 PM 2020 (UTC). The date will be in the UTC timezone.
@@ -90,6 +90,23 @@ If a pattern is not specified with `saveas`, the following defaults are used:
 40L: `%Y-%m-%d_%H-%M_%T.ttr`  
 Blitz: `%Y-%m-%d_%H-%M_%b.ttr`  
 TL: `%Y-%m-%d_%H-%M_%O.ttrm`
+
+## Command line options
+
+```
+Usage: inoue [-h] [-q] [[-c <command> | <path>]...]
+```
+
+Inoue can be provided with a path or paths to folders, which will be used as target directories, i.e. Inoue will look for files called
+`inoue.cfg` or `inoue.txt` and use them. If no path is passed, the current working directory (the folder the program was ran from) is used instead,
+as if `inoue .` was used.
+
+Inoue can also be directly provided with instructions with the `-c` option. For example, `inoue -c 'user szy 40l'` will act as if
+there was a configuration file with `user szy 40l` in the current working directory. The entire configuration string has to be passed as
+one argument, so quoting is important. Multiple `-c` options can be passed.
+
+Passing `-q` will enable quiet mode, which will make Inoue not print messages other than errors, as well as disable the `Press any key` prompt on Windows.
+Useful for scripts or cron jobs.
 
 ## Replay API access
 
