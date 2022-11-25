@@ -6,6 +6,10 @@
 typedef struct buffer buffer;
 struct json_object_s; // silence a warning
 
+#ifndef INOUE_VER
+#define INOUE_VER "v?"
+#endif
+
 enum log_level {
 	LOG_INFO,
 	LOG_WARN,

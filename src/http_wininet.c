@@ -14,7 +14,7 @@ int
 http_init(void)
 {
 	// cracking open a can of internet
-	internet = InternetOpenA("Mozilla/5.0 (only pretending; Inoue/v1; wininet)",
+	internet = InternetOpenA("Mozilla/5.0 (only pretending; Inoue/" INOUE_VER "; wininet)",
 		INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
 	if (!internet) {
 		logE("failed to open an internet (%ld)", GetLastError());

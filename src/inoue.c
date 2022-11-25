@@ -9,10 +9,6 @@
 
 #include "inoue.h"
 
-#ifndef INOUE_VER
-#define INOUE_VER "?"
-#endif
-
 int opt_quiet = 0; // extern definition
 int total_dl = 0; // extern definition
 
