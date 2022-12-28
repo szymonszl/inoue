@@ -48,7 +48,7 @@ main(int argc, char **argv)
 				case 'q':
 					opt_quiet = 1;
 					break;
-				case 'v':
+				case 'V':
 					puts("Inoue " INOUE_VER);
 					return EXIT_SUCCESS;
 				case 'h':
@@ -76,7 +76,7 @@ main(int argc, char **argv)
 		if (argv[i][0] == '-' && argv[i][2] == '\0') {
 			switch (argv[i][1]) {
 				case 'q':
-				case 'v':
+				case 'V':
 				case 'h':
 					break;
 				case 'c':

@@ -94,7 +94,7 @@ TL: `%Y-%m-%d_%H-%M_%O.ttrm`
 ## Command line options
 
 ```
-Usage: inoue [-h] [-q] [[-c <command> | <path>]...]
+Usage: inoue [-h] [-V] [-q] [[-c <command> | <path>]...]
 ```
 
 Inoue can be provided with a path or paths to folders, which will be used as target directories, i.e. Inoue will look for files called
@@ -107,6 +107,8 @@ one argument, so quoting is important. Multiple `-c` options can be passed.
 
 Passing `-q` will enable quiet mode, which will make Inoue not print messages other than errors, as well as disable the `Press any key` prompt on Windows.
 Useful for scripts or cron jobs.
+
+Passing `-h` prints above synopsis and exits. Passing `-V` prints version information and exits.
 
 ## Replay API access
 
