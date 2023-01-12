@@ -106,7 +106,7 @@ main(int argc, char **argv)
 		logI("Downloaded %d replays total.", total_dl);
 		if (log_maxseen > LOG_INFO) {
 			// safe to put here, no risk of errors getting spammed away in quiet mode
-			logE("Errors have occured.");
+			logE("Errors have occured, check logs above.");
 		}
 	}
 
