@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "json.h"
+#include "winunistd.h"
 
 #include "inoue.h"
 
@@ -60,10 +61,19 @@ download_from_stream(const char *url, const char *format, const char *user)
 {
 	static buffer *b = NULL;
 	if (!b) b = buffer_new();
-	buffer_truncate(b);
 	long status;
-	if (!http_get(url, b, &status)) {
-		return;
+	long retries = 0;
+	for (;;) {
+		buffer_truncate(b);
+		if (!http_get(url, b, &status)) {
+			return;
+		}
+		if (status != 429 || retries >= 3) {
+			break;
+		}
+		logI("...throttled, retrying in %ds...", 1<<retries);
+		sleep(1 << retries);
+		retries++;
 	}
 	if (status != 200) {
 		logE("api: received error %ld from server", status);
