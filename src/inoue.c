@@ -52,7 +52,7 @@ main(int argc, char **argv)
 					puts("Inoue " INOUE_VER);
 					return EXIT_SUCCESS;
 				case 'h':
-					fprintf(stderr, "Usage: %s [-h] [-q] [[-c <command> | <path>]...]\n", argv[0]);
+					fprintf(stderr, "Usage: %s [-h] [-V] [-q] [[-c <command> | <path>]...]\n", argv[0]);
 					return EXIT_SUCCESS;
 				case 'c':
 					i++; // ignore for now
