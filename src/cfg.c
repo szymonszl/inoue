@@ -15,6 +15,9 @@ enum tasktype {
 static void
 dispatch(char *user, char *format, enum tasktype type)
 {
+	if (!user) {
+		logE("config: no user selected!");
+	}
 	const char *uid = resolve_username(user);
 	if (!uid) {
 		logE("failed to resolve user %s!", user);
@@ -209,9 +212,5 @@ loadcfg(const char *c)
 				break;
 		}
 	}
-	if (user) {
-		dispatch(user, format, type);
-	} else {
-		logE("config: no user selected!");
-	}
+	dispatch(user, format, type);
 }
