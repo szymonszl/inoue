@@ -18,7 +18,7 @@ get_opponent(struct json_object_s *game, const char *user)
 			struct json_object_s *c = json_value_as_object(i->value);
 			if (!c)
 				return "";
-			const char *username = json_getstring(c, "user.username", 0);
+			const char *username = json_getstring(c, "username", 0);
 			if (!username) continue;
 			if (0 != strcmp(username, user)) {
 				return username;
