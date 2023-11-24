@@ -29,6 +29,7 @@ void logS(const char *, ...) LOGFMT(1, 2);
 #define logE(...) log_(LOG_ERR, __VA_ARGS__)
 extern int opt_quiet;
 extern int total_dl;
+extern char *update;
 
 void loadcfg(const char *);
 

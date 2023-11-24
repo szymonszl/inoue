@@ -108,6 +108,9 @@ main(int argc, char **argv)
 			// safe to put here, no risk of errors getting spammed away in quiet mode
 			logE("Errors have occured, check logs above.");
 		}
+		if (update) {
+			logI("There is an update available! (%s)", update);
+		}
 	}
 
 #ifdef _WIN32
