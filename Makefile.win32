@@ -8,13 +8,16 @@ LDFLAGS = -s -static-libgcc -lwininet
 
 all: build/inoue.exe
 
-build/inoue.exe: $(OBJS)
+build/inoue.exe: $(OBJS) build/inoue.res
 	@mkdir -p build
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(OBJS): build/%.o: src/%.c $(DEPS)
 	@mkdir -p build
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+build/inoue.res: src/inoue.rc src/inoue.ico
+	windres -O coff -o $@ $<
 
 # debug targets; they assume build/data exists and has a proper config file
 run: build/inoue.exe
