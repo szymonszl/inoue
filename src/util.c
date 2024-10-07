@@ -81,7 +81,16 @@ json_get_api_data(struct json_value_s *root)
 	for (struct json_object_element_s *i = root_obj->start; i != NULL; i = i->next) {
 		if (0 == strcmp(i->name->string, "success")) {
 			if (!json_value_is_true(i->value)) {
-				logE("error from server: %s", json_getstring(root_obj, "error", 1));
+				// tries three sources of error
+				void *j = NULL;
+				const char *msg = json_getstring(root_obj, "error", 0);
+				if (!msg)
+					msg = json_getstring(root_obj, "error.msg", 0);
+				if (!msg)
+					msg = j = json_write_minified(json_getpath(root_obj, "error"), NULL);
+				logE("error from server: %s", msg);
+				if (j)
+					free(j);
 				return NULL;
 			}
 		} else if (0 == strcmp(i->name->string, "data")) {
