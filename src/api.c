@@ -12,6 +12,7 @@ download_leaderboard(const char *format, const char *user, const char *gamemode,
 {
 	char url[256];
 	snprintf(url, 256, "https://ch.tetr.io/api/users/%s/records/%s/%s?limit=50", user, gamemode, leaderboard);
+	// very heavy TODO: pagination!
 	static buffer *b = NULL;
 	if (!b) b = buffer_new();
 	long status;
@@ -42,8 +43,7 @@ download_leaderboard(const char *format, const char *user, const char *gamemode,
 		struct json_array_s *records = json_value_as_array(rv);
 		if (records) {
 			for (struct json_array_element_s *j = records->start; j != NULL; j = j->next) {
-				printf("Downloading game %s for user %s\n", json_getstring(json_value_as_object(j->value), "replayid", 1), user);
-				//download_game(json_value_as_object(j->value), format, user);
+				download_game(json_value_as_object(j->value), format, user);
 			}
 		}
 	}

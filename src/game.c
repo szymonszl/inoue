@@ -11,20 +11,18 @@
 static const char *
 get_opponent(struct json_object_s *game, const char *user)
 {
-	struct json_value_s *v = json_getpath(game, "endcontext");
-	struct json_array_s *endcontext = json_value_as_array(v);
-	if (endcontext) {
-		for (struct json_array_element_s *i = endcontext->start; i != NULL; i = i->next) {
-			struct json_object_s *c = json_value_as_object(i->value);
-			if (!c)
-				return "";
-			const char *username = json_getstring(c, "username", 0);
-			if (!username) continue;
-			if (0 != strcmp(username, user)) {
-				return username;
-			}
-		}
-	}
+	struct json_value_s *v = json_getpath(game, "otherusers");
+	if (!v)
+		return "";
+	struct json_array_s *others = json_value_as_array(v);
+	if (!others)
+		return "";
+	struct json_object_s *c = json_value_as_object(others->start->value);
+	if (!c)
+		return "";
+	const char *username = json_getstring(c, "username", 0);
+	if (username)
+		return username;
 	return "";
 }
 
@@ -85,7 +83,7 @@ generate_filename(struct json_object_s *game, const char *format, const char *re
 				break;
 			case 'b':
 				{
-					double score = json_getdouble(game, "endcontext.score", -1);
+					double score = json_getdouble(game, "results.stats.score", -1);
 					if (score > 0) {
 						snprintf(tmp, 32, "%ld", (long)score);
 						buffer_appendstr(buf, tmp);
@@ -94,7 +92,7 @@ generate_filename(struct json_object_s *game, const char *format, const char *re
 				break;
 			case 't':
 				{
-					double time = json_getdouble(game, "endcontext.finalTime", -1);
+					double time = json_getdouble(game, "results.stats.finaltime", -1);
 					if (time > 0) {
 						snprintf(tmp, 32, "%.4f", time/1000.0);
 						buffer_appendstr(buf, tmp);
@@ -103,7 +101,7 @@ generate_filename(struct json_object_s *game, const char *format, const char *re
 				break;
 			case 'T':
 				{
-					double time = json_getdouble(game, "endcontext.finalTime", -1);
+					double time = json_getdouble(game, "results.stats.finaltime", -1);
 					if (time > 0) {
 						int ms = ((int)time) % 1000;
 						int s = ((int)time) / 1000;
@@ -144,11 +142,23 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 	if (!replayid)
 		return;
 
+	struct json_value_s *stub = json_getpath(game, "stub");
+	if (stub) {
+		if (json_value_is_true(stub)) {
+			logI("Replay for game %s is unavailable (pruned)", replayid);
+			return;
+		}
+	}
+	
+
 	const char *filename = generate_filename(game, format, replayid, user);
 	if (!filename) {
 		logE("failed to generate filename for %s", replayid);
 		return;
 	}
+
+	printf("Generated filename: %s → %s\n", format, filename);
+	return; // TODO rest
 
 	if(access(filename, F_OK) != -1 ) {
 		logI("Game %s already saved, skipping...", replayid);
