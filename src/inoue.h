@@ -44,7 +44,7 @@ int endswith(const char *, const char *);
 int ensure_dir(const char *);
 char *getcwd_(void);
 
-void download_from_stream(const char *, const char *, const char *);
+void download_leaderboard(const char *, const char *, const char *, const char *);
 void download_game(struct json_object_s *, const char *, const char *);
 
 buffer *buffer_new(void);

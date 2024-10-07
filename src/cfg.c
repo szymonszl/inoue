@@ -18,12 +18,8 @@ dispatch(char *user, char *format, enum tasktype type)
 	if (!user) {
 		logE("config: no user selected!");
 	}
-	const char *uid = resolve_username(user);
-	if (!uid) {
-		logE("failed to resolve user %s!", user);
-		return;
-	}
-	const char *urlfmt1, *urlfmt2 = NULL;
+	const char *gamemode = NULL;
+	enum { TOP = 1, RECENT = 2, PROGRESSION = 4 } lbs = 0;
 	switch (type) {
 		case TSK_NONE:
 			logE("config: no task type selected!");
@@ -32,33 +28,33 @@ dispatch(char *user, char *format, enum tasktype type)
 			if (!format) format = "%Y-%m-%d_%H-%M_%T.ttr";
 			if (!endswith(format, ".ttr"))
 				logW("wrong or no extension for singleplayer (expected .ttr)");
-			urlfmt1 = "https://ch.tetr.io/api/streams/40l_userrecent_%s";
-			urlfmt2 = "https://ch.tetr.io/api/streams/40l_userbest_%s";
+			gamemode = "40l";
+			lbs = TOP|RECENT|PROGRESSION;
 			logI("downloading 40L from %s...", user);
 			break;
 		case TSK_BLITZ:
 			if (!format) format = "%Y-%m-%d_%H-%M_%b.ttr";
 			if (!endswith(format, ".ttr"))
 				logW("wrong or no extension for singleplayer (expected .ttr)");
-			urlfmt1 = "https://ch.tetr.io/api/streams/blitz_userrecent_%s";
-			urlfmt2 = "https://ch.tetr.io/api/streams/blitz_userbest_%s";
+			gamemode = "blitz";
+			lbs = TOP|RECENT|PROGRESSION;
 			logI("downloading Blitz from %s...", user);
 			break;
 		case TSK_LEAGUE:
 			if (!format) format = "%Y-%m-%d_%H-%M_%O.ttrm";
 			if (!endswith(format, ".ttrm"))
 				logW("wrong or no extension for multiplayer (expected .ttrm)");
-			urlfmt1 = "https://ch.tetr.io/api/streams/league_userrecent_%s";
+			gamemode = "league";
+			lbs = RECENT;
 			logI("downloading Tetra League from %s...", user);
 			break;
 	}
-	char urlbuf[128];
-	snprintf(urlbuf, 128, urlfmt1, uid);
-	download_from_stream(urlbuf, format, user);
-	if (urlfmt2) {
-		snprintf(urlbuf, 128, urlfmt2, uid);
-		download_from_stream(urlbuf, format, user);
-	}
+	if (lbs & TOP)
+		download_leaderboard(format, user, gamemode, "top");
+	if (lbs & RECENT)
+		download_leaderboard(format, user, gamemode, "recent");
+	if (lbs & PROGRESSION)
+		download_leaderboard(format, user, gamemode, "progression");
 }
 
 enum cfgword {
