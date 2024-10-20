@@ -153,7 +153,6 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 			return DL_GONE;
 		}
 	}
-	
 
 	const char *filename = generate_filename(game, format, replayid, user);
 	if (!filename) {
@@ -161,12 +160,9 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 		return DL_ERR;
 	}
 
-	printf("Generated filename: %s → %s\n", format, filename);
-	return DL_OK; // TODO rest
-
 	if(access(filename, F_OK) != -1 ) {
 		logI("Game %s already saved, skipping...", replayid);
-		return;
+		return DL_EXISTS;
 	}
 
 	logI("Downloading %s -> %s... ", replayid, filename);
@@ -176,7 +172,7 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 	FILE *f = fopen(filename, "wb");
 	if (!f) {
 		logS("couldnt open output file");
-		return;
+		return DL_ERR;
 	}
 	char urlbuf[128];
 	snprintf(urlbuf, 128, "https://inoue.szy.lol/api/replay/%s", replayid);
@@ -187,7 +183,7 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 		if (!http_get(urlbuf, b, &status)) {
 			fclose(f);
 			unlink(filename); // delete the failed file, so the download can be retried
-			return;
+			return DL_ERR;
 		}
 		if (status != 429 || retries >= 3) {
 			break;
@@ -200,14 +196,15 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 		logE("received error %ld from server: %s", status, buffer_str(b));
 		fclose(f);
 		unlink(filename);
-		return;
+		return DL_ERR;
 	}
 	if (!buffer_save(b, f)) {
 		logE("Saving failed!");
 		fclose(f);
 		unlink(filename);
-		return;
+		return DL_ERR;
 	}
 	total_dl++;
 	fclose(f);
+	return DL_OK;
 }
