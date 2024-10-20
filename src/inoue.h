@@ -45,7 +45,13 @@ int ensure_dir(const char *);
 char *getcwd_(void);
 
 void download_leaderboard(const char *, const char *, const char *, const char *);
-void download_game(struct json_object_s *, const char *, const char *);
+enum dlresult {
+	DL_ERR,
+	DL_OK,
+	DL_GONE,
+	DL_EXISTS,
+};
+enum dlresult download_game(struct json_object_s *, const char *, const char *);
 
 buffer *buffer_new(void);
 void buffer_free(buffer *b);

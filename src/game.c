@@ -129,24 +129,28 @@ generate_filename(struct json_object_s *game, const char *format, const char *re
 	return buffer_str(buf);
 }
 
-void
+enum dlresult
 download_game(struct json_object_s *game, const char *format, const char *user)
 {
 	static buffer *b = NULL;
 	if (!b) b = buffer_new();
 
-	if (!game)
-		return;
+	if (!game) {
+		logE("empty game?");
+		return DL_ERR;
+	}
 
 	const char *replayid = json_getstring(game, "replayid", 0);
-	if (!replayid)
-		return;
+	if (!replayid) {
+		logE("no rID?");
+		return DL_ERR;
+	}
 
 	struct json_value_s *stub = json_getpath(game, "stub");
 	if (stub) {
 		if (json_value_is_true(stub)) {
 			logI("Replay for game %s is unavailable (pruned)", replayid);
-			return;
+			return DL_GONE;
 		}
 	}
 	
@@ -154,11 +158,11 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 	const char *filename = generate_filename(game, format, replayid, user);
 	if (!filename) {
 		logE("failed to generate filename for %s", replayid);
-		return;
+		return DL_ERR;
 	}
 
 	printf("Generated filename: %s → %s\n", format, filename);
-	return; // TODO rest
+	return DL_OK; // TODO rest
 
 	if(access(filename, F_OK) != -1 ) {
 		logI("Game %s already saved, skipping...", replayid);
