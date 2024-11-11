@@ -1,7 +1,7 @@
 VERSION = $(shell git describe --always --tags)
 
 OBJS = build/inoue.o build/buffer.o build/util.o build/cfg.o \
-	build/api.o build/game.o build/log.o build/http_wininet.o
+	build/leaderboard.o build/game.o build/log.o build/http_wininet.o
 DEPS = src/inoue.h src/json.h src/winunistd.h
 CFLAGS = -Wall -DINOUE_VER=\"$(VERSION)\"
 LDFLAGS = -s -static-libgcc -lwininet
