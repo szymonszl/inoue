@@ -18,7 +18,7 @@ struct prisecter {
 #define MST 9007199254740991 // Number.MAX_SAFE_INTEGER
 static const struct prisecter max_pst = {MST, MST, MST};
 // i'd assume that the true "max" value should be DBL_MAX, but this is what tetrio uses
-// also ideally they'd be integers so i don't have to worry about rounding errors but yknow
+// also ideally they'd be integers so i wouldn't have to worry about rounding errors but yknow
 
 static struct prisecter
 get_prisecter(struct json_object_s *game)
@@ -125,21 +125,22 @@ download_leaderboard(const char *format, const char *user, const char *gamemode,
 		snprintf(url, 256, "https://ch.tetr.io/api/users/%s/records/%s/%s?limit=100&after=%f:%f:%f",
 			user, gamemode, leaderboard, before.p, before.s, before.t);
 		logI("url: %s", url);
-		// very heavy TODO: pagination! will require dealing with prisecters...
 		struct dlstats ds = download_page(format, user, url);
 		if (ds.ok < 0) {
 			logE("failed to download leaderboard page!");
 			return;
 		}
 		if (ds.ok + ds.err + ds.exist + ds.gone < 100) {
-			logI("ran out?");
+			logI("no further records exist");
 			return;
 		}
-		logI("got %d / %d", ds.ok, ds.exist+ds.gone);
+		if (ds.gone) {
+			logI("no further replays available (pruned)");
+			return;
+		}
 		if (ds.err) {
 			logE("%d replays failed!\n", ds.err);
 		}
 		before = ds.next;
-		sleep(2);
 	}
 }

@@ -19,7 +19,7 @@ dispatch(char *user, char *format, enum tasktype type)
 		logE("config: no user selected!");
 	}
 	const char *gamemode = NULL;
-	enum { TOP = 1, RECENT = 2, PROGRESSION = 4 } lbs = 0;
+	// enum { TOP = 1, RECENT = 2, PROGRESSION = 4 } lbs = 0;
 	switch (type) {
 		case TSK_NONE:
 			logE("config: no task type selected!");
@@ -29,7 +29,7 @@ dispatch(char *user, char *format, enum tasktype type)
 			if (!endswith(format, ".ttr"))
 				logW("wrong or no extension for singleplayer (expected .ttr)");
 			gamemode = "40l";
-			lbs = TOP|RECENT|PROGRESSION;
+			// lbs = TOP|RECENT|PROGRESSION;
 			logI("downloading 40L from %s...", user);
 			break;
 		case TSK_BLITZ:
@@ -37,7 +37,7 @@ dispatch(char *user, char *format, enum tasktype type)
 			if (!endswith(format, ".ttr"))
 				logW("wrong or no extension for singleplayer (expected .ttr)");
 			gamemode = "blitz";
-			lbs = TOP|RECENT|PROGRESSION;
+			// lbs = TOP|RECENT|PROGRESSION;
 			logI("downloading Blitz from %s...", user);
 			break;
 		case TSK_LEAGUE:
@@ -45,7 +45,7 @@ dispatch(char *user, char *format, enum tasktype type)
 			if (!endswith(format, ".ttrm"))
 				logW("wrong or no extension for multiplayer (expected .ttrm)");
 			gamemode = "league";
-			lbs = RECENT;
+			// lbs = RECENT;
 			logI("downloading Tetra League from %s...", user);
 			break;
 	}
