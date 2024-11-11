@@ -10,6 +10,8 @@ enum tasktype {
 	TSK_40L,
 	TSK_BLITZ,
 	TSK_LEAGUE,
+	TSK_ZENITH,
+	TSK_ZENITHEX,
 };
 
 static void
@@ -46,6 +48,20 @@ dispatch(char *user, char *format, enum tasktype type)
 			// lbs = RECENT;
 			logI("downloading Tetra League from %s...", user);
 			break;
+		case TSK_ZENITH:
+			if (!format) format = "%Y-%m-%d_%H-%M_%a.ttrm";
+			proper_ext = ".ttr";
+			gamemode = "zenith";
+			// lbs = RECENT;
+			logI("downloading Quick Play from %s...", user);
+			break;
+		case TSK_ZENITHEX:
+			if (!format) format = "%Y-%m-%d_%H-%M_%a.ttrm";
+			proper_ext = ".ttr";
+			gamemode = "zenithex";
+			// lbs = RECENT;
+			logI("downloading Expert Quick Play from %s...", user);
+			break;
 	}
 	if (!endswith(format, proper_ext)) {
 		const char *found = strrchr(format, '.');
@@ -64,19 +80,24 @@ dispatch(char *user, char *format, enum tasktype type)
 
 enum cfgword {
 	CFG_NONE = 0,
+
 	CFG_USER,
 	CFG_FORMAT,
 	CFG_40L,
 	CFG_BLITZ,
 	CFG_LEAGUE,
+
+	CFG_ZENITH,
+	CFG_ZENITHEX,
 	CFG_NEXT,
-};
+}; // order has to match words[] below!
 
 static enum cfgword
 read_word(const char *c, const char **n)
 {
 	const char *words[] = {
-		"user", "saveas", "40l", "blitz", "league", "also", NULL
+		"user", "saveas", "40l", "blitz", "league",
+		"qp", "qpexpert", "also", NULL
 	};
 	for (int i = 0; words[i] != NULL; i++) {
 		int l = strlen(words[i]);
@@ -202,6 +223,14 @@ loadcfg(const char *c)
 			case CFG_LEAGUE:
 				CHECK_TYPE();
 				type = TSK_LEAGUE;
+				break;
+			case CFG_ZENITH:
+				CHECK_TYPE();
+				type = TSK_ZENITH;
+				break;
+			case CFG_ZENITHEX:
+				CHECK_TYPE();
+				type = TSK_ZENITHEX;
 				break;
 			case CFG_NEXT:
 				dispatch(user, format, type);
