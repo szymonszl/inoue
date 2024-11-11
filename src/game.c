@@ -112,6 +112,15 @@ generate_filename(struct json_object_s *game, const char *format, const char *re
 					}
 				}
 				break;
+			case 'a':
+				{
+					double alt = json_getdouble(game, "results.stats.zenith.altitude", -1);
+					if (alt > 0) {
+						snprintf(tmp, 32, "%d", (int)alt);
+						buffer_appendstr(buf, tmp);
+					}
+				}
+				break;
 			case 'r':
 				buffer_appendstr(buf, replayid);
 				break;

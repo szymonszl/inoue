@@ -69,6 +69,7 @@ Filename formatting patterns (passed to `saveas`) can contain percent-letter seq
 | `%b`     | the score gained in the replay                                            | SP only      | `64886`                    |
 | `%t`     | the length of the game, in seconds with decimals                          | SP only      | `62.6067`                  |
 | `%T`     | the length of the game, in minutes, seconds, and milliseconds             | SP only      | `1'02.606`                 |
+| `%a`     | the altitude reached in Quick Play 2                                      | QP only      | `516`                      |
 | `%Y`     | the year of the game                                                      | always       | `2020`                     |
 | `%y`     | the two-digit year of the game                                            | always       | `20`                       |
 | `%m`     | the month of the game                                                     | always       | `09`                       |

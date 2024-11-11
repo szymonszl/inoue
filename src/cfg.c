@@ -49,14 +49,14 @@ dispatch(char *user, char *format, enum tasktype type)
 			logI("downloading Tetra League from %s...", user);
 			break;
 		case TSK_ZENITH:
-			if (!format) format = "%Y-%m-%d_%H-%M_%a.ttrm";
+			if (!format) format = "%Y-%m-%d_%H-%M-%S_%a.ttr";
 			proper_ext = ".ttr";
 			gamemode = "zenith";
 			// lbs = RECENT;
 			logI("downloading Quick Play from %s...", user);
 			break;
 		case TSK_ZENITHEX:
-			if (!format) format = "%Y-%m-%d_%H-%M_%a.ttrm";
+			if (!format) format = "%Y-%m-%d_%H-%M-%S_%a.ttr";
 			proper_ext = ".ttr";
 			gamemode = "zenithex";
 			// lbs = RECENT;
