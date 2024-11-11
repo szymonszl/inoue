@@ -91,14 +91,23 @@ enum cfgword {
 	CFG_ZENITHEX,
 	CFG_NEXT,
 }; // order has to match words[] below!
+static const char *words[] = {
+	"user", "saveas", "40l", "blitz", "league",
+	"qp", "qpexpert", "also", NULL
+};
+
+static enum cfgword aliasof[] = {
+	CFG_ZENITH, CFG_ZENITHEX, CFG_ZENITHEX, CFG_ZENITH, CFG_ZENITHEX,
+	CFG_LEAGUE, CFG_NEXT,
+}; // order has to match aliases[] below!
+static const char *aliases[] = {
+	"qp2", "qp2ex", "qpex", "zenith", "zenithex",
+	"tl", "and",
+};
 
 static enum cfgword
 read_word(const char *c, const char **n)
 {
-	const char *words[] = {
-		"user", "saveas", "40l", "blitz", "league",
-		"qp", "qpexpert", "also", NULL
-	};
 	for (int i = 0; words[i] != NULL; i++) {
 		int l = strlen(words[i]);
 		if (memcmp(c, words[i], l) == 0 && (isspace(c[l]) || c[l] == '\0')) {
@@ -110,6 +119,19 @@ read_word(const char *c, const char **n)
 				}
 			}
 			return i+1;
+		}
+	}
+	for (int i = 0; aliases[i] != NULL; i++) {
+		int l = strlen(aliases[i]);
+		if (memcmp(c, aliases[i], l) == 0 && (isspace(c[l]) || c[l] == '\0')) {
+			if (n) {
+				if (c[l]) {
+					*n = &c[l+1];
+				} else {
+					*n = &c[l];
+				}
+			}
+			return aliasof[i];
 		}
 	}
 	return CFG_NONE;

@@ -50,7 +50,7 @@ also user osk league saveas %u_vs_%o_%s.ttrm
 ```
 This will download `szy`'s 40L games, named like `2020-10-22 10-48 40L 1'02.606.ttr`, then `szy`'s Blitz games named like `2020-05-12 10-25 Blitz 64886.ttr`, and finally `osk`'s Tetra League games under `osk_vs_paradoxiem_1653256831.ttrm`.
 
-The user is marked by the word `user` followed by the username or userID, and the type of replay is marked by `40l`, `blitz`, `league`, `qp`, `qpexpert`.
+The user is marked by the word `user` followed by the username or userID, and the type of replay is marked by `40l`, `blitz`, `league` (`tl`), `qp` (`qp2`, `zenith`), `qpexpert` (`qpex`, `qp2ex`, `zenithex`).
 Please note that only 40L and Blitz replays are officially supported by TETR.IO and replays of other types **may break** in later updates!
 The description for the filename is marked by the word `saveas` followed by a format string, which can be quoted.
 Tasks are delimited by the word `also`. If a task does not define a user, the user from the previous task is assumed.
