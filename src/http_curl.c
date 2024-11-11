@@ -47,7 +47,7 @@ header_callback(char *buffer, size_t size, size_t nitems, void *userdata)
 int
 http_init(void)
 {
-	logI("curl ver: %s", curl_version());
+	// logI("curl ver: %s", curl_version());
 	curl_global_init(CURL_GLOBAL_ALL);
 	hnd = curl_easy_init();
 	if (!hnd) return 0;

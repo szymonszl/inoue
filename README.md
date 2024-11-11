@@ -6,7 +6,7 @@ Inoue is a program for automatically downloading [TETR.IO](https://tetr.io) repl
 
 When you run Inoue, the program connects to TETR.IO, downloads the replays you want, and saves them.
 This includes both singleplayer (40L, Blitz) as well as multiplayer (Tetra League) games.
-As long as you run Inoue at least once every 10 games, all your replays with be backed up!
+As long as you run Inoue at least once a week, all your replays with be backed up!
 
 ## Features
 
@@ -91,7 +91,8 @@ For example, `%Y-%m/%Y-%m-%d %H-%M vs %T.ttrm` will categorize TL replays by the
 If a pattern is not specified with `saveas`, the following defaults are used:  
 40L: `%Y-%m-%d_%H-%M_%T.ttr`  
 Blitz: `%Y-%m-%d_%H-%M_%b.ttr`  
-TL: `%Y-%m-%d_%H-%M_%O.ttrm`
+TL: `%Y-%m-%d_%H-%M_%O.ttrm`  
+QP2: `%Y-%m-%d_%H-%M-%S_%a.ttr`
 
 ## Command line options
 

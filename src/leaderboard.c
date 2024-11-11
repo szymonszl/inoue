@@ -114,7 +114,6 @@ download_leaderboard(const char *format, const char *user, const char *gamemode,
 		char url[256];
 		snprintf(url, 256, "https://ch.tetr.io/api/users/%s/records/%s/%s?limit=100&after=%f:%f:%f",
 			user, gamemode, leaderboard, before.p, before.s, before.t);
-		logI("url: %s", url);
 		struct dlstats ds = download_page(format, user, url);
 		if (ds.ok < 0) {
 			logE("failed to download leaderboard page!");
