@@ -18,7 +18,7 @@ As long as you run Inoue at least once every 10 games, all your replays with be 
 ## Quick guide for Windows
 
 1. Download and unpack the latest build from [Releases](https://github.com/szymonszl/inoue/releases).
-2. The unpacked folder will contain a file called `inoue.txt`. Please fill it in according to the **Configuration** section.
+2. The unpacked folder will contain a file called `inoue.txt`. Please fill in your username and game mode. For more information, consult the **Configuration** section.
 3. Run `inoue.exe`.
 4. Your replays should be downloaded! Please try viewing them to make sure that the download worked.
 5. Run `inoue.exe` every time you have played some more games and want to save them.
@@ -50,7 +50,8 @@ also user osk league saveas %u_vs_%o_%s.ttrm
 ```
 This will download `szy`'s 40L games, named like `2020-10-22 10-48 40L 1'02.606.ttr`, then `szy`'s Blitz games named like `2020-05-12 10-25 Blitz 64886.ttr`, and finally `osk`'s Tetra League games under `osk_vs_paradoxiem_1653256831.ttrm`.
 
-The user is marked by the word `user` followed by the username or userID, and the type of replay is marked by `40l`, `blitz`, `league`.
+The user is marked by the word `user` followed by the username or userID, and the type of replay is marked by `40l`, `blitz`, `league`, `qp`, `qpexpert`.
+Please note that only 40L and Blitz replays are officially supported by TETR.IO and replays of other types **may break** in later updates!
 The description for the filename is marked by the word `saveas` followed by a format string, which can be quoted.
 Tasks are delimited by the word `also`. If a task does not define a user, the user from the previous task is assumed.
 

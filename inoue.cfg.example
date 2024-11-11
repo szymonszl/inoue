@@ -1,5 +1,5 @@
 # This is an example minimal configuration file for Inoue. For more information, read the Configuration section in README.md!
 
 user kagari # This is the user whose replays will be downloaded
-league # This is the type of replays to be downloaded
+40l # This is the type of replays to be downloaded
 # You can also specify more kinds of replays and what filenames to save them under.
