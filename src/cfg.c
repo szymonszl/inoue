@@ -49,12 +49,15 @@ dispatch(char *user, char *format, enum tasktype type)
 			logI("downloading Tetra League from %s...", user);
 			break;
 	}
+	/*
 	if (lbs & TOP)
 		download_leaderboard(format, user, gamemode, "top");
 	if (lbs & RECENT)
 		download_leaderboard(format, user, gamemode, "recent");
 	if (lbs & PROGRESSION)
 		download_leaderboard(format, user, gamemode, "progression");
+	*/ // this won't work for now
+	download_leaderboard(format, user, gamemode, "recent");
 }
 
 enum cfgword {
