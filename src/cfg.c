@@ -19,6 +19,7 @@ dispatch(char *user, char *format, enum tasktype type)
 		logE("config: no user selected!");
 	}
 	const char *gamemode = NULL;
+	const char *proper_ext = "";
 	// enum { TOP = 1, RECENT = 2, PROGRESSION = 4 } lbs = 0;
 	switch (type) {
 		case TSK_NONE:
@@ -26,28 +27,29 @@ dispatch(char *user, char *format, enum tasktype type)
 			return;
 		case TSK_40L:
 			if (!format) format = "%Y-%m-%d_%H-%M_%T.ttr";
-			if (!endswith(format, ".ttr"))
-				logW("wrong or no extension for singleplayer (expected .ttr)");
+			proper_ext = ".ttr";
 			gamemode = "40l";
 			// lbs = TOP|RECENT|PROGRESSION;
 			logI("downloading 40L from %s...", user);
 			break;
 		case TSK_BLITZ:
 			if (!format) format = "%Y-%m-%d_%H-%M_%b.ttr";
-			if (!endswith(format, ".ttr"))
-				logW("wrong or no extension for singleplayer (expected .ttr)");
+			proper_ext = ".ttr";
 			gamemode = "blitz";
 			// lbs = TOP|RECENT|PROGRESSION;
 			logI("downloading Blitz from %s...", user);
 			break;
 		case TSK_LEAGUE:
 			if (!format) format = "%Y-%m-%d_%H-%M_%O.ttrm";
-			if (!endswith(format, ".ttrm"))
-				logW("wrong or no extension for multiplayer (expected .ttrm)");
+			proper_ext = ".ttrm";
 			gamemode = "league";
 			// lbs = RECENT;
 			logI("downloading Tetra League from %s...", user);
 			break;
+	}
+	if (!endswith(format, proper_ext)) {
+		const char *found = strrchr(format, '.');
+		logW("wrong or no extension in format (expected %s, got %s)", proper_ext, found?found:"");
 	}
 	/*
 	if (lbs & TOP)
