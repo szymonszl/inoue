@@ -186,20 +186,10 @@ download_game(struct json_object_s *game, const char *format, const char *user)
 	char urlbuf[128];
 	snprintf(urlbuf, 128, "https://inoue.szy.lol/api/replay/%s", replayid);
 	long status;
-	long retries = 0;
-	for (;;) {
-		buffer_truncate(b);
-		if (!http_get(urlbuf, b, &status)) {
-			fclose(f);
-			unlink(filename); // delete the failed file, so the download can be retried
-			return DL_ERR;
-		}
-		if (status != 429 || retries >= 3) {
-			break;
-		}
-		logI("...throttled, retrying in %ds...", 1<<retries);
-		sleep(1 << retries);
-		retries++;
+	if (!http_get(urlbuf, b, &status)) {
+		fclose(f);
+		unlink(filename); // delete the failed file, so the download can be retried
+		return DL_ERR;
 	}
 	if (status != 200) {
 		logE("received error %ld from server: %s", status, buffer_str(b));

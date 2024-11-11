@@ -65,6 +65,7 @@ int buffer_save(buffer *b, FILE *f);
 void buffer_load(buffer *b, FILE *f);
 
 int http_init(void);
+int http_get_raw(const char *, buffer *, long *);
 int http_get(const char *, buffer *, long *);
 void http_deinit(void);
 

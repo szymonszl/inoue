@@ -68,21 +68,11 @@ download_page(const char *format, const char *user, const char *url)
 	static buffer *b = NULL;
 	if (!b) b = buffer_new();
 	long status;
-	long retries = 0;
 	struct dlstats ret = { -1 };
 	struct prisecter psts[2] = {max_pst, max_pst};
-	for (;;) {
-		buffer_truncate(b);
 		if (!http_get(url, b, &status)) {
 			return ret;
 		}
-		if (status != 429 || retries >= 3) {
-			break;
-		}
-		logI("...throttled, retrying in %ds...", 1<<retries);
-		sleep(1 << retries);
-		retries++;
-	}
 	if (status != 200) {
 		logE("api: received error %ld from server", status);
 		return ret;

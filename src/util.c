@@ -172,3 +172,29 @@ getcwd_(void)
 	}
 	return buf;
 }
+
+int
+http_get(const char *url, buffer *b, long *status)
+{
+	long _status, retries = 0;
+	if (!status)
+		status = &_status;
+	for (;;) {
+		buffer_truncate(b);
+		if (http_get_raw(url, b, status)) {
+			if (*status == 429) {
+				if (retries >= 3) {
+					return 0;
+				} else {
+					logI("...throttled, retrying in %ds...", 1<<retries);
+					sleep(1 << retries);
+					retries++;
+				}
+			} else {
+				return 1;
+			}
+		} else {
+			return 0;
+		}
+	}
+}

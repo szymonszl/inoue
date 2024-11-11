@@ -31,7 +31,7 @@ http_deinit(void)
 }
 
 int
-http_get(const char *url, buffer *b, long *status)
+http_get_raw(const char *url, buffer *b, long *status)
 {
 	HINTERNET req = InternetOpenUrlA(
 		internet, url, NULL, 0,

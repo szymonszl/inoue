@@ -64,7 +64,7 @@ http_deinit(void)
 }
 
 int
-http_get(const char *url, buffer *b, long *status)
+http_get_raw(const char *url, buffer *b, long *status)
 {
 	curl_easy_setopt(hnd, CURLOPT_WRITEDATA, b);
 	curl_easy_setopt(hnd, CURLOPT_URL, url);
